@@ -54,62 +54,100 @@ struct OverviewView: View {
 
     private var hero: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .center, spacing: 14) {
+            HStack(alignment: .top, spacing: 14) {
                 Image(systemName: "sparkles.tv.fill")
-                    .font(.system(size: 34))
+                    .font(.system(size: 30))
                     .foregroundStyle(.tint)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("FMHY")
-                        .font(.largeTitle.weight(.bold))
-                    Text("The largest collection of free stuff on the internet.")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                // The navigation bar already shows the name in large type, so
+                // the hero carries only the tagline.
+                Text("The largest collection of free stuff on the internet.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
+            chips
+        }
+    }
+
+    /// One row while it fits, then two, then one chip per row. Without this the
+    /// row's width pushes the whole page wider than the screen at large text.
+    private var chips: some View {
+        ViewThatFits(in: .horizontal) {
             HStack(spacing: 8) {
-                infoChip("\(store.catalog.count) sections")
-                infoChip("\(store.totalEntryCount) links")
+                countChips
+                postsChip
+                domainChip
+            }
 
-                // FMHY's monthly update posts, read in the app.
-                Button {
-                    openPosts()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "newspaper")
-                            .font(.system(size: 8, weight: .semibold))
-                        Text("Posts")
-                            .lineLimit(1)
-                    }
-                    .font(.caption2.weight(.medium))
-                    .foregroundStyle(.tint)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(.tint.opacity(0.14), in: .capsule)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    countChips
+                    postsChip
                 }
-                .buttonStyle(.plain)
-                .help("Monthly posts from FMHY")
+                domainChip
+            }
 
-                Button(action: onChangeInstance) {
-                    HStack(spacing: 5) {
-                        Circle()
-                            .fill(instanceTint)
-                            .frame(width: 6, height: 6)
-                        Text(store.activeInstance?.host ?? store.preferredInstanceID)
-                            .lineLimit(1)
-                        Image(systemName: "chevron.down")
-                            .font(.system(size: 8, weight: .semibold))
-                    }
-                    .font(.caption2)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(.quaternary.opacity(0.6), in: .capsule)
-                }
-                .buttonStyle(.plain)
-                .help("Change wiki domain")
+            VStack(alignment: .leading, spacing: 8) {
+                countChips
+                postsChip
+                domainChip
             }
         }
+        // Metadata, not body copy: the cap keeps the widest single chip inside
+        // a phone screen even at the largest accessibility sizes.
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+    }
+
+    @ViewBuilder
+    private var countChips: some View {
+        infoChip("\(store.catalog.count) sections")
+        // A zero count is only ever the moment before the cache loads.
+        if store.totalEntryCount > 0 {
+            infoChip("\(store.totalEntryCount) links")
+        }
+    }
+
+    /// FMHY's monthly update posts.
+    private var postsChip: some View {
+        Button {
+            openPosts()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "newspaper")
+                    .font(.system(size: 8, weight: .semibold))
+                Text("Posts")
+                    .lineLimit(1)
+            }
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(.tint)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(.tint.opacity(0.14), in: .capsule)
+        }
+        .buttonStyle(.plain)
+        .help("Monthly posts from FMHY")
+    }
+
+    private var domainChip: some View {
+        Button(action: onChangeInstance) {
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(instanceTint)
+                    .frame(width: 6, height: 6)
+                Text(store.activeInstance?.host ?? store.preferredInstanceID)
+                    .lineLimit(1)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 8, weight: .semibold))
+            }
+            .font(.caption2)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(.quaternary.opacity(0.6), in: .capsule)
+        }
+        .buttonStyle(.plain)
+        .help("Change wiki domain")
     }
 
     private var changedSections: [(slug: String, title: String, count: Int)] {
