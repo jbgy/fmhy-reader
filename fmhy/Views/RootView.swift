@@ -198,13 +198,17 @@ struct RootView: View {
         }
     }
 
+    /// A pushed page takes the whole screen: the tab bar only belongs on the
+    /// four roots, so it slides away with the push and returns on the way back.
     @ViewBuilder
     private func destination(_ route: Route) -> some View {
         switch route {
         case .page(let slug):
             PageView(slug: slug)
+                .toolbar(.hidden, for: .tabBar)
         case .posts:
             PostsView()
+                .toolbar(.hidden, for: .tabBar)
         }
     }
     #endif
