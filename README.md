@@ -38,6 +38,8 @@ repository.
 - **Cross-links** to other wiki sections and to Reddit open in the app, including anchors.
 - **Tappable note links** in callouts, so a recommendation's own site is one tap away.
 - **Resume:** reopening the app returns to the last section, with recently viewed sections listed.
+- **Settings** in one place: appearance, automatic update checks, wiki domain and mirror fallback,
+  the overview tip, and the bookmark backup — `⌘,` on the Mac.
 - iPhone, iPad and Mac from one SwiftUI codebase, with light, dark and tinted icons.
 
 ## Requirements

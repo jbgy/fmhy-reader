@@ -14,6 +14,7 @@ enum SidebarItem: Hashable {
     case search
     case bookmarks
     case posts
+    case settings
 }
 
 struct RootView: View {
@@ -24,6 +25,7 @@ struct RootView: View {
     @State private var browserSheet: BrowserSheet?
     @State private var showInstanceSheet = false
     @State private var restoreRecords: [BookmarkRecord]?
+    @AppStorage("appearanceMode") private var appearance: AppearanceMode = .system
 
     private var instanceSheetPresented: Binding<Bool> {
         Binding(
@@ -42,6 +44,7 @@ struct RootView: View {
             }
         }
         .navigationSplitViewStyle(.balanced)
+        .preferredColorScheme(appearance.colorScheme)
         .environment(\.openSection, OpenSectionAction { slug, group in
             if let group {
                 store.requestJump(WikiJump(slug: slug, group: group))
@@ -125,6 +128,8 @@ struct RootView: View {
             BookmarksView()
         case .posts:
             PostsView()
+        case .settings:
+            SettingsView()
         case .overview, .none:
             OverviewView(selection: $selection, onChangeInstance: { showInstanceSheet = true })
         }
@@ -155,6 +160,11 @@ struct SidebarView: View {
                     .tag(SidebarItem.search)
                 Label("Bookmarks", systemImage: "star.fill")
                     .tag(SidebarItem.bookmarks)
+                #if !os(macOS)
+                // macOS gets the standard Settings window (⌘,) instead.
+                Label("Settings", systemImage: "gearshape")
+                    .tag(SidebarItem.settings)
+                #endif
             }
 
             Section("Wiki") {

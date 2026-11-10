@@ -42,6 +42,7 @@ final class WikiStore {
 
     static let primaryInstanceKey = "wiki.primaryInstance"
     static let autoFallbackKey = "wiki.autoFallback"
+    static let autoRefreshKey = "wiki.autoRefresh"
     static let recentKey = "wiki.recentSections"
     /// Bump when cached pages must be re-parsed (notes keep their links now).
     private static let cacheVersion = 2
@@ -230,6 +231,14 @@ final class WikiStore {
         activeInstance = ordered.first { instanceHealth[$0.host] == .online } ?? preferred
     }
 
+    /// Saves the fallback choice made in Settings without going through setup.
+    func setAutoFallback(_ enabled: Bool) {
+        guard enabled != autoFallback else { return }
+        autoFallback = enabled
+        UserDefaults.standard.set(enabled, forKey: Self.autoFallbackKey)
+        resolveActiveInstance()
+    }
+
     /// Saves the domain choice, then starts caching and updating.
     func finishSetup(primary: String, autoFallback: Bool) async {
         UserDefaults.standard.set(primary, forKey: Self.primaryInstanceKey)
@@ -274,6 +283,7 @@ final class WikiStore {
     func refreshIfNeeded() async {
         guard !needsInstanceSetup else { return }
         guard !isRefreshing else { return }
+        guard UserDefaults.standard.object(forKey: Self.autoRefreshKey) as? Bool ?? true else { return }
         let lastCheck = meta.lastChecked ?? .distantPast
         if !pages.isEmpty, Date().timeIntervalSince(lastCheck) < refreshInterval {
             return

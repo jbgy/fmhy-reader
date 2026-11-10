@@ -42,5 +42,13 @@ struct FMHYApp: App {
             }
         }
         #endif
+
+        #if os(macOS)
+        Settings {
+            SettingsView()
+                .environment(store)
+                .modelContainer(modelContainer)
+        }
+        #endif
     }
 }
