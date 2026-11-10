@@ -136,8 +136,9 @@ Pushing a tag runs the whole pipeline:
 git tag v1.1 && git push origin v1.1
 ```
 
-`.github/workflows/release.yml` builds the unsigned IPA with `VERSION_OVERRIDE` from the tag and
-`BUILD_NUMBER_OVERRIDE` from the workflow run number, packages the macOS app as
+`.github/workflows/release.yml` builds the unsigned IPA with `VERSION_OVERRIDE` from the tag and a
+`BUILD_NUMBER_OVERRIDE` that `scripts/build-number.py` derives from the same tag (`v2.0` →
+`20000`), so a release keeps its build number when a run is retried. It packages the macOS app as
 `FMHY-macOS.zip`, adds the version to `docs/apps.json` (download URL, size, SHA-256, minimum OS,
 plus a news entry per release), creates the GitHub release with both binaries attached, and
 commits the refreshed feed back to `main` — so people who added the source get the update

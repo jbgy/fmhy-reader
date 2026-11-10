@@ -19,10 +19,17 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      # The build number comes from the tag, not github.run_number: a run
+      # number changes when a run is retried or deleted and means nothing in
+      # the feed, while v2.0 always yields 20000.
+      - name: Resolve the build number from the tag
+        id: build
+        run: echo "number=$(python3 scripts/build-number.py '${{ github.ref_name }}')" >> "$GITHUB_OUTPUT"
+
       - name: Build unsigned IPA
         env:
           VERSION_OVERRIDE: ${{ github.ref_name }}
-          BUILD_NUMBER_OVERRIDE: ${{ github.run_number }}
+          BUILD_NUMBER_OVERRIDE: ${{ steps.build.outputs.number }}
         run: |
           ./scripts/build-ipa.sh
           cp build/FMHY-*-unsigned.ipa build/FMHY.ipa
@@ -30,7 +37,7 @@ jobs:
       - name: Build macOS app
         env:
           VERSION_OVERRIDE: ${{ github.ref_name }}
-          BUILD_NUMBER_OVERRIDE: ${{ github.run_number }}
+          BUILD_NUMBER_OVERRIDE: ${{ steps.build.outputs.number }}
         run: ./scripts/build-macos.sh
 
       # Notes come from the commits since the previous tag, so the release and
