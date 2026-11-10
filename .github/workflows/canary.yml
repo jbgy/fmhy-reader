@@ -1,0 +1,40 @@
+name: Parser canary
+
+# The app parses someone else's hand-written markdown. If fmhy/edit reformats a
+# section, the app renders less of it and nobody notices until a reader does, so
+# this parses the live wiki with the app's own parser and fails loudly instead.
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'fmhy/Services/FMHYMarkdownParser.swift'
+      - 'fmhy/Models/WikiModels.swift'
+      - 'fmhy/Models/WikiInstances.swift'
+      - 'scripts/parser-canary/**'
+      - '.github/workflows/canary.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  canary:
+    name: Parse the live wiki
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile the checker against the app's parser
+        run: |
+          mkdir -p build
+          swiftc -O \
+            fmhy/Models/WikiModels.swift \
+            fmhy/Models/WikiInstances.swift \
+            fmhy/Services/FMHYMarkdownParser.swift \
+            scripts/parser-canary/main.swift \
+            -o build/parser-canary
+
+      - name: Compare the live wiki against the baseline
+        run: ./build/parser-canary --check --baseline scripts/parser-canary/baseline.json

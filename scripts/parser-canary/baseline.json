@@ -1,0 +1,137 @@
+{
+  "commit" : "bdf3c2aea8bf6a99f163ca843ee98fc5e15a86cb",
+  "generated" : "2026-11-10T18:30:32Z",
+  "sections" : {
+    "ai" : {
+      "categories" : 8,
+      "entries" : 323,
+      "groups" : 24
+    },
+    "audio" : {
+      "categories" : 11,
+      "entries" : 859,
+      "groups" : 46
+    },
+    "beginners-guide" : {
+      "categories" : 1,
+      "entries" : 41,
+      "groups" : 15
+    },
+    "developer-tools" : {
+      "categories" : 12,
+      "entries" : 967,
+      "groups" : 54
+    },
+    "downloading" : {
+      "categories" : 6,
+      "entries" : 140,
+      "groups" : 19
+    },
+    "educational" : {
+      "categories" : 13,
+      "entries" : 1639,
+      "groups" : 72
+    },
+    "file-tools" : {
+      "categories" : 4,
+      "entries" : 358,
+      "groups" : 24
+    },
+    "gaming" : {
+      "categories" : 6,
+      "entries" : 973,
+      "groups" : 45
+    },
+    "gaming-tools" : {
+      "categories" : 8,
+      "entries" : 959,
+      "groups" : 58
+    },
+    "image-tools" : {
+      "categories" : 7,
+      "entries" : 684,
+      "groups" : 45
+    },
+    "internet-tools" : {
+      "categories" : 10,
+      "entries" : 742,
+      "groups" : 41
+    },
+    "linux-macos" : {
+      "categories" : 9,
+      "entries" : 710,
+      "groups" : 34
+    },
+    "misc" : {
+      "categories" : 16,
+      "entries" : 1553,
+      "groups" : 75
+    },
+    "mobile" : {
+      "categories" : 14,
+      "entries" : 1128,
+      "groups" : 68
+    },
+    "non-english" : {
+      "categories" : 31,
+      "entries" : 1388,
+      "groups" : 121
+    },
+    "privacy" : {
+      "categories" : 6,
+      "entries" : 323,
+      "groups" : 34
+    },
+    "reading" : {
+      "categories" : 10,
+      "entries" : 842,
+      "groups" : 40
+    },
+    "sandbox" : {
+      "categories" : 1,
+      "entries" : 0,
+      "groups" : 1
+    },
+    "social-media-tools" : {
+      "categories" : 16,
+      "entries" : 547,
+      "groups" : 45
+    },
+    "storage" : {
+      "categories" : 1,
+      "entries" : 144,
+      "groups" : 35
+    },
+    "system-tools" : {
+      "categories" : 4,
+      "entries" : 372,
+      "groups" : 26
+    },
+    "text-tools" : {
+      "categories" : 5,
+      "entries" : 496,
+      "groups" : 29
+    },
+    "torrenting" : {
+      "categories" : 4,
+      "entries" : 98,
+      "groups" : 14
+    },
+    "unsafe" : {
+      "categories" : 1,
+      "entries" : 4,
+      "groups" : 9
+    },
+    "video" : {
+      "categories" : 11,
+      "entries" : 936,
+      "groups" : 43
+    },
+    "video-tools" : {
+      "categories" : 5,
+      "entries" : 410,
+      "groups" : 28
+    }
+  },
+  "totalEntries" : 16636
+}
