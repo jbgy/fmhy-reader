@@ -8,6 +8,22 @@
   "identifier": "com.jbugel.fmhy.altstore",
   "apps": [
     {
+      "name": "FMHY 2.0",
+      "bundleIdentifier": "iOS.jbugel.fmhy",
+      "developerName": "jbgy",
+      "subtitle": "FMHY Reader · Build 9",
+      "localizedDescription": "Added:\n- settings: add a settings screen for appearance, updates and domains\n- macOS: add a command palette for search\n- sidebar: move the library group below the wiki sections\n- iphone: replace the sidebar with a tab bar\n- iphone: give pushed sections the full screen\n\nFixed:\n- overview: stop the header repeating the title and overflowing\n\nChanged:\n- Revert \"docs: show the app in the README and on the landing page\"\n\nDocs:\n- Show the app in the README and on the landing page\n- Show the app's screens in the README and on the landing page\n- Put the one-tap add and download badges up front\n\nUnsigned IPA for iOS 17.0 and later.",
+      "iconURL": "https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/icon.png",
+      "tintColor": "#7C5CFF",
+      "version": "2.0",
+      "buildVersion": "9",
+      "versionDate": "2026-11-10T15:54:56Z",
+      "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v2.0/FMHY.ipa",
+      "size": 2678430,
+      "minOSVersion": "17.0",
+      "sha256": "27514cfbe6b150af058ec2b560fa6f8b35322f29f10cae8512e6a6731cd5b4f3"
+    },
+    {
       "name": "FMHY 1.7",
       "bundleIdentifier": "iOS.jbugel.fmhy",
       "developerName": "jbgy",
@@ -137,6 +153,14 @@
     }
   ],
   "news": [
+    {
+      "title": "FMHY 2.0",
+      "identifier": "2.0-9",
+      "caption": "settings: add a settings screen for appearance, updates and domains (+9 more)",
+      "date": "2026-11-10T15:54:56Z",
+      "tintColor": "#7C5CFF",
+      "appID": "iOS.jbugel.fmhy"
+    },
     {
       "title": "FMHY 1.7",
       "identifier": "1.7-8",
