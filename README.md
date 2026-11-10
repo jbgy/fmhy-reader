@@ -40,6 +40,8 @@ repository.
 - **Resume:** reopening the app returns to the last section, with recently viewed sections listed.
 - **Settings** in one place: appearance, automatic update checks, wiki domain and mirror fallback,
   the overview tip, and the bookmark backup — `⌘,` on the Mac.
+- **⌘K command palette** on the Mac: one field that jumps to a section or opens any link in the
+  wiki, with recent sections listed before you type.
 - iPhone, iPad and Mac from one SwiftUI codebase, with light, dark and tinted icons.
 
 ## Requirements

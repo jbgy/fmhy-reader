@@ -26,6 +26,9 @@ struct RootView: View {
     @State private var showInstanceSheet = false
     @State private var restoreRecords: [BookmarkRecord]?
     @AppStorage("appearanceMode") private var appearance: AppearanceMode = .system
+    #if os(macOS)
+    @State private var showPalette = false
+    #endif
 
     private var instanceSheetPresented: Binding<Bool> {
         Binding(
@@ -45,6 +48,28 @@ struct RootView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .preferredColorScheme(appearance.colorScheme)
+        #if os(macOS)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showPalette = true
+                } label: {
+                    Label("Search Everything", systemImage: "magnifyingglass")
+                }
+                .keyboardShortcut("k", modifiers: [.command])
+                .help("Search every section and link (⌘K)")
+            }
+        }
+        .overlay {
+            if showPalette {
+                CommandPalette(
+                    onOpenSection: { slug in selection = .page(slug) },
+                    onOpenEntry: { result in openWikiURL(result.entry.url) },
+                    onDismiss: { showPalette = false }
+                )
+            }
+        }
+        #endif
         .environment(\.openSection, OpenSectionAction { slug, group in
             if let group {
                 store.requestJump(WikiJump(slug: slug, group: group))
@@ -52,20 +77,7 @@ struct RootView: View {
             selection = .page(slug)
         })
         .environment(\.openWikiURL, OpenWikiURLAction { url in
-            // Cross-references to FMHY itself stay in the app, and anchors that
-            // point at a group scroll there instead of doing nothing.
-            if let target = WikiLinkRouter.target(for: url) {
-                if let group = target.group {
-                    store.requestJump(WikiJump(slug: target.slug, group: group))
-                }
-                selection = .page(target.slug)
-                return
-            }
-            #if os(iOS)
-            browserSheet = BrowserSheet(url: url)
-            #else
-            ExternalBrowser.open(url)
-            #endif
+            openWikiURL(url)
         })
         .sheet(item: $browserSheet) { sheet in
             SafariSheet(url: sheet.url)
@@ -103,6 +115,23 @@ struct RootView: View {
                 }
             }
         }
+    }
+
+    /// Cross-references to FMHY itself stay in the app, and anchors that point at
+    /// a group scroll there instead of doing nothing.
+    private func openWikiURL(_ url: URL) {
+        if let target = WikiLinkRouter.target(for: url) {
+            if let group = target.group {
+                store.requestJump(WikiJump(slug: target.slug, group: group))
+            }
+            selection = .page(target.slug)
+            return
+        }
+        #if os(iOS)
+        browserSheet = BrowserSheet(url: url)
+        #else
+        ExternalBrowser.open(url)
+        #endif
     }
 
     private func offerBackupRestore() {
