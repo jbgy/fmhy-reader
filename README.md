@@ -148,6 +148,10 @@ through AltStore/Feather without doing anything. The same run regenerates the la
 and the current month's post from that feed.
 
 `ci.yml` builds iOS and macOS on every push and pull request and validates the scripts and feed.
+`canary.yml` runs daily: it parses the live wiki with the app's own parser and fails when a section
+loses more than a tenth of its entries or its category structure. The content is someone else's
+hand-written markdown, so upstream reformatting — not a missing feature — is the failure mode that
+empties a page without a single error.
 
 ## How updates work
 
