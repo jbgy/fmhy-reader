@@ -182,20 +182,6 @@ struct SidebarView: View {
 
     var body: some View {
         List(selection: $selection) {
-            Section("Library") {
-                Label("Overview", systemImage: "rectangle.grid.2x2")
-                    .tag(SidebarItem.overview)
-                Label("Search Wiki", systemImage: "magnifyingglass")
-                    .tag(SidebarItem.search)
-                Label("Bookmarks", systemImage: "star.fill")
-                    .tag(SidebarItem.bookmarks)
-                #if !os(macOS)
-                // macOS gets the standard Settings window (⌘,) instead.
-                Label("Settings", systemImage: "gearshape")
-                    .tag(SidebarItem.settings)
-                #endif
-            }
-
             Section("Wiki") {
                 ForEach(filteredPages) { definition in
                     Label {
@@ -213,6 +199,21 @@ struct SidebarView: View {
                         }
                     }
                 }
+            }
+
+            // The library sits below the wiki so the sections read first.
+            Section("Library") {
+                Label("Overview", systemImage: "rectangle.grid.2x2")
+                    .tag(SidebarItem.overview)
+                Label("Search Wiki", systemImage: "magnifyingglass")
+                    .tag(SidebarItem.search)
+                Label("Bookmarks", systemImage: "star.fill")
+                    .tag(SidebarItem.bookmarks)
+                #if !os(macOS)
+                // macOS gets the standard Settings window (⌘,) instead.
+                Label("Settings", systemImage: "gearshape")
+                    .tag(SidebarItem.settings)
+                #endif
             }
 
             Section {
