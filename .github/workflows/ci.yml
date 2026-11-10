@@ -75,6 +75,9 @@ jobs:
             echo "ok $script"
           done
 
+      - name: Check the site matches the feed
+        run: python3 scripts/make-site.py --check
+
       - name: Check AltStore feed
         run: |
           python3 - <<'PY'

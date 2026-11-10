@@ -20,7 +20,8 @@ repository.
 - **Silent updates:** a commit feed check on launch and on foregrounding picks up changes and
   shows what is new ("New links since the last update") without an app update.
 - **Search** across every section, with a breadcrumb back to the section a result came from.
-- **Bookmarks** stored on device with SwiftData: folders, one-step delete, JSON export/import.
+- **Bookmarks** stored on device with SwiftData: folders, one-step delete, JSON export/import, plus
+  an opt-in backup copy that can refill an empty list (visible in the Files app on iOS).
 - **Cross-links** to other wiki sections and to Reddit open in the app, including anchors.
 - **Tappable note links** in callouts, so a recommendation's own site is one tap away.
 - **Resume:** reopening the app returns to the last section, with recently viewed sections listed.
@@ -116,7 +117,8 @@ git tag v1.1 && git push origin v1.1
 `FMHY-macOS.zip`, adds the version to `docs/apps.json` (download URL, size, SHA-256, minimum OS,
 plus a news entry per release), creates the GitHub release with both binaries attached, and
 commits the refreshed feed back to `main` — so people who added the source get the update
-through AltStore/Feather without doing anything.
+through AltStore/Feather without doing anything. The same run regenerates the landing page
+and the current month's post from that feed.
 
 `ci.yml` builds iOS and macOS on every push and pull request and validates the scripts and feed.
 
@@ -133,6 +135,22 @@ The cached content lives in the app's Application Support directory and is re-pa
 cache format changes. If a fetch fails the app keeps the last good copy and says so instead of
 showing an empty page.
 
+## Website
+
+`docs/` doubles as a GitHub Pages site. `docs/index.html` is the landing page, and every month
+gets a post at `/posts/<month>-<year>` — for example `/posts/nov-2026` for November 2026.
+Both are generated from the entries in `docs/apps.json`, so a release shows up in its month
+without hand-editing HTML:
+
+```bash
+python3 scripts/make-site.py          # rewrite the landing page and monthly posts
+python3 scripts/make-site.py --check  # fail if the committed pages are stale
+```
+
+Serve it once with **Settings → Pages → Deploy from a branch → `main` / `docs`**; after that the
+release workflow publishes new posts with every tag. `ci.yml` fails if the pages fall behind
+the feed.
+
 ## Project layout
 
 ```
@@ -143,6 +161,7 @@ fmhy/
   Resources/   bundled wiki snapshot
 fmhyTests/     parser, routing, bookmark and search tests
 docs/apps.json AltStore-format source feed
+docs/index.html, docs/posts/  generated landing page and monthly update posts
 scripts/       IPA and macOS packaging, AltStore feed update, icon generator
 ```
 

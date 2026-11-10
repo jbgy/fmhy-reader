@@ -59,7 +59,10 @@ jobs:
             --repo "${{ github.repository }}" \
             --tag "${{ github.ref_name }}" \
             --notes-file build/notes.txt
-          git add docs/apps.json
+          # The landing page and this month's post come from the same feed, so a
+          # tag never leaves the site behind.
+          python3 scripts/make-site.py
+          git add docs/apps.json docs/index.html docs/posts
           git commit -m "chore(release): publish ${{ github.ref_name }}"
           git push origin release-feed:main
 
