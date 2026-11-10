@@ -8,6 +8,22 @@
   "identifier": "com.jbugel.fmhy.altstore",
   "apps": [
     {
+      "name": "FMHY 1.6",
+      "bundleIdentifier": "iOS.jbugel.fmhy",
+      "developerName": "jbgy",
+      "subtitle": "FMHY Reader · Build 7",
+      "localizedDescription": "Added:\n- overview: link the monthly release posts by the link count\n\nFixed:\n- bookmarks: make the backup menu entry actually turn the copy on\n\nUnsigned IPA for iOS 17.0 and later.",
+      "iconURL": "https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/icon.png",
+      "tintColor": "#7C5CFF",
+      "version": "1.6",
+      "buildVersion": "7",
+      "versionDate": "2026-11-10T13:27:17Z",
+      "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.6/FMHY.ipa",
+      "size": 2601913,
+      "minOSVersion": "17.0",
+      "sha256": "dac06948a14b12b1bbfcddf733283f219df6f48fc8f4ce6a6051d695e6b31eaa"
+    },
+    {
       "name": "FMHY 1.5",
       "bundleIdentifier": "iOS.jbugel.fmhy",
       "developerName": "jbgy",
@@ -105,6 +121,14 @@
     }
   ],
   "news": [
+    {
+      "title": "FMHY 1.6",
+      "identifier": "1.6-7",
+      "caption": "overview: link the monthly release posts by the link count (+1 more)",
+      "date": "2026-11-10T13:27:17Z",
+      "tintColor": "#7C5CFF",
+      "appID": "iOS.jbugel.fmhy"
+    },
     {
       "title": "FMHY 1.5",
       "identifier": "1.5-6",
