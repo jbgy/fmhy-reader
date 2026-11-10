@@ -18,16 +18,7 @@ struct SearchView: View {
 
     private var results: [SearchItem] {
         guard trimmedQuery.count >= 2 else { return [] }
-        var matches: [SearchItem] = []
-        for item in store.searchIndex {
-            if item.entry.title.localizedCaseInsensitiveContains(trimmedQuery)
-                || item.entry.summary.localizedCaseInsensitiveContains(trimmedQuery)
-                || item.groupTitle.localizedCaseInsensitiveContains(trimmedQuery) {
-                matches.append(item)
-                if matches.count >= 250 { break }
-            }
-        }
-        return matches
+        return WikiSearch.rank(store.searchIndex, query: trimmedQuery)
     }
 
     var body: some View {
