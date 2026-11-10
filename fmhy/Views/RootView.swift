@@ -69,11 +69,10 @@ struct RootView: View {
                 .interactiveDismissDisabled(store.needsInstanceSetup)
         }
         .task {
+            // Launch always lands on the overview. Jumping straight into the
+            // last section felt like the app navigating on its own, so reading
+            // resumes from the overview's "Recently viewed" row instead.
             await store.bootstrap()
-            // Reopen the last section that was read.
-            if selection == .overview, let slug = store.resumeSlug {
-                selection = .page(slug)
-            }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
