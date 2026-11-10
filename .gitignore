@@ -1,0 +1,17 @@
+# Build output
+build/
+DerivedData/
+*.xcarchive
+
+# Xcode per-user state
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+fmhy.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/
+
+# macOS
+.DS_Store
+
+# Local tooling
+.freebuff/
+__pycache__/
