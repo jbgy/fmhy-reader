@@ -158,7 +158,17 @@ struct SidebarView: View {
             prompt: "Filter sections"
         )
         #else
-        .searchable(text: $filter, prompt: "Filter sections")
+        // No .searchable here on macOS: the detail column adds its own, and two
+        // search fields in one window toolbar make AppKit throw on launch
+        // ("already contains an item with the identifier com.apple.SwiftUI.search").
+        .safeAreaInset(edge: .top, spacing: 0) {
+            TextField(text: $filter, prompt: Text("Filter sections")) {
+                Text("Filter sections")
+            }
+            .textFieldStyle(.roundedBorder)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+        }
         #endif
     }
 }
