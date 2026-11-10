@@ -68,8 +68,33 @@ jobs:
             echo "ok $script"
           done
 
-      - name: Check Python helper compiles
-        run: python3 -c "compile(open('scripts/make-altstore-source.py').read(), 'make-altstore-source.py', 'exec')"
+      - name: Check Python helpers compile
+        run: |
+          for script in scripts/*.py; do
+            python3 -c "compile(open('$script').read(), '$script', 'exec')"
+            echo "ok $script"
+          done
 
-      - name: Check AltStore feed is valid JSON
-        run: python3 -m json.tool docs/apps.json > /dev/null
+      - name: Check AltStore feed
+        run: |
+          python3 - <<'PY'
+          import json
+
+          feed = json.load(open("docs/apps.json"))
+          apps = feed["apps"]
+          required = {
+              "name", "bundleIdentifier", "developerName", "localizedDescription",
+              "version", "buildVersion", "versionDate", "downloadURL",
+              "size", "minOSVersion",
+          }
+          assert apps, "feed has no apps"
+          for app in apps:
+              assert "versions" not in app, f"{app.get('version')} still uses a versions[] array"
+              missing = required - app.keys()
+              assert not missing, f"{app.get('version')} is missing {sorted(missing)}"
+          dates = [app["versionDate"] for app in apps]
+          assert dates == sorted(dates, reverse=True), "feed is not newest-first"
+          versions = [app["version"] for app in apps]
+          assert len(set(versions)) == len(versions), f"duplicate versions: {versions}"
+          print(f"feed ok: {len(apps)} versions", versions)
+          PY

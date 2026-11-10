@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
-"""Record a built .ipa as a version in the AltStore source feed.
+"""Write the AltStore source feed in docs/apps.json.
 
-Reads docs/apps.json, prepends the release described by the given .ipa, and
-writes the file back. Existing versions are kept so AltStore/SideStore/Feather
-users can still download older builds.
+Every release is its own entry in apps[], newest first. That is the layout
+AltStore, SideStore and Feather use to list installable versions; an app entry
+that carries a versions[] array instead makes Feather show only the newest
+build, with no history.
 
 Usage:
+  # after building an .ipa
   python3 scripts/make-altstore-source.py --ipa build/FMHY.ipa \
-      --repo owner/name --tag v1.0
+      --repo owner/name --tag v1.5 --notes-file build/notes.txt
+
+  # convert a feed that still uses the versions[] layout
+  python3 scripts/make-altstore-source.py --migrate --repo owner/name
 
 The download URL points at the release asset named FMHY.ipa, which is what
 .github/workflows/release.yml uploads.
@@ -27,6 +32,26 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FEED = REPO_ROOT / "docs" / "apps.json"
 RELEASE_ASSET = "FMHY.ipa"
+MAX_ENTRIES = 50
+MAX_NEWS = 10
+DISPLAY_NAME = "FMHY Reader"
+DEFAULT_TINT = "#7C5CFF"
+
+
+def now_iso() -> str:
+    return (
+        datetime.datetime.now(datetime.timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+
+
+def normalise_date(value: str | None) -> str:
+    """Day-only dates from older feeds become midnight UTC timestamps."""
+    if not value:
+        return now_iso()
+    return value if "T" in value else f"{value}T00:00:00Z"
 
 
 def read_app_info(ipa: Path) -> dict:
@@ -42,31 +67,114 @@ def read_app_info(ipa: Path) -> dict:
         return plistlib.loads(archive.read(plist_name))
 
 
+def asset_url(repo: str, version: str) -> str:
+    return f"https://github.com/{repo}/releases/download/v{version}/{RELEASE_ASSET}"
+
+
+def make_entry(
+    base: dict,
+    *,
+    version: str,
+    build: str,
+    date: str,
+    size: int,
+    minimum_os: str,
+    download_url: str,
+    description: str,
+    sha256: str | None,
+) -> dict:
+    entry = {
+        "name": f"FMHY {version}",
+        "bundleIdentifier": base.get("bundleIdentifier", "iOS.jbugel.fmhy"),
+        "developerName": base.get("developerName", "jbgy"),
+        "subtitle": f"{DISPLAY_NAME} · Build {build}",
+        "localizedDescription": description,
+        "iconURL": base.get("iconURL"),
+        "tintColor": base.get("tintColor", DEFAULT_TINT),
+        "version": version,
+        "buildVersion": build,
+        "versionDate": normalise_date(date),
+        "downloadURL": download_url,
+        "size": int(size or 0),
+        "minOSVersion": minimum_os or "17.0",
+    }
+    if sha256:
+        entry["sha256"] = sha256
+    return entry
+
+
+def entries_from_feed(feed: dict, repo: str) -> list[dict]:
+    """Return apps[] entries in the per-version layout, converting if needed."""
+    apps = feed.get("apps") or []
+    if not apps:
+        raise SystemExit("error: apps.json has no app entry to update")
+
+    base = apps[0]
+    entries: list[dict] = []
+
+    if base.get("versions"):
+        for version in base["versions"]:
+            entries.append(
+                make_entry(
+                    base,
+                    version=str(version["version"]),
+                    build=str(version.get("buildVersion", "1")),
+                    date=version.get("date", ""),
+                    size=version.get("size", 0),
+                    minimum_os=version.get("minOSVersion", "17.0"),
+                    download_url=version.get("downloadURL") or asset_url(repo, str(version["version"])),
+                    description=version.get("localizedDescription")
+                    or f"Release v{version['version']}.",
+                    sha256=version.get("sha256"),
+                )
+            )
+    else:
+        for app in apps:
+            entries.append(
+                make_entry(
+                    app,
+                    version=str(app["version"]),
+                    build=str(app.get("buildVersion", "1")),
+                    date=app.get("versionDate", ""),
+                    size=app.get("size", 0),
+                    minimum_os=app.get("minOSVersion", "17.0"),
+                    download_url=app.get("downloadURL") or asset_url(repo, str(app["version"])),
+                    description=app.get("localizedDescription", ""),
+                    sha256=app.get("sha256"),
+                )
+            )
+
+    entries.sort(key=lambda entry: entry["versionDate"], reverse=True)
+    return entries[:MAX_ENTRIES]
+
+
+def news_entry(feed: dict, app: dict, version: str, build: str, date: str, notes: str) -> dict:
+    bullets = [line.lstrip("- ").strip() for line in notes.splitlines() if line.startswith("- ")]
+    caption = bullets[0] if bullets else f"Build {build}"
+    if len(bullets) > 1:
+        caption = f"{caption} (+{len(bullets) - 1} more)"
+    if len(caption) > 120:
+        caption = caption[:117] + "…"
+    return {
+        "title": f"FMHY {version}",
+        "identifier": f"{version}-{build}",
+        "caption": caption,
+        "date": date,
+        "tintColor": app.get("tintColor", DEFAULT_TINT),
+        "appID": app.get("bundleIdentifier"),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--ipa", required=True, type=Path)
+    parser.add_argument("--ipa", type=Path, help="built .ipa to record")
     parser.add_argument("--repo", required=True, help="GitHub repository, owner/name")
-    parser.add_argument("--tag", required=True, help="Release tag, e.g. v1.0")
+    parser.add_argument("--tag", help="release tag, e.g. v1.5")
     parser.add_argument("--feed", type=Path, default=FEED)
-    parser.add_argument(
-        "--date",
-        default=datetime.datetime.now(datetime.timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z"),
-        help="ISO 8601 release timestamp; defaults to now (UTC)",
-    )
+    parser.add_argument("--notes-file", type=Path, help="plain-text release notes for this build")
+    parser.add_argument("--date", default=now_iso(), help="ISO 8601 release timestamp")
+    parser.add_argument("--migrate", action="store_true", help="rewrite the feed layout without adding a build")
     args = parser.parse_args()
-
-    if not args.ipa.is_file():
-        raise SystemExit(f"error: {args.ipa} not found")
-
-    info = read_app_info(args.ipa)
-    version = info.get("CFBundleShortVersionString", "1.0")
-    build = str(info.get("CFBundleVersion", "1"))
-    minimum_os = info.get("MinimumOSVersion", "27.0")
-    size = args.ipa.stat().st_size
-    download_url = f"https://github.com/{args.repo}/releases/download/{args.tag}/{RELEASE_ASSET}"
 
     feed_path = args.feed if args.feed.is_absolute() else REPO_ROOT / args.feed
     feed = json.loads(feed_path.read_text())
@@ -75,56 +183,61 @@ def main() -> int:
     feed["sourceURL"] = f"{raw_base}/apps.json"
     feed["iconURL"] = f"{raw_base}/icon.png"
 
-    if not feed.get("apps"):
-        raise SystemExit("error: apps.json has no app entry to update")
+    entries = entries_from_feed(feed, args.repo)
+    for entry in entries:
+        entry["iconURL"] = f"{raw_base}/icon.png"
 
-    app = feed["apps"][0]
-    app["iconURL"] = f"{raw_base}/icon.png"
-    app["bundleIdentifier"] = info.get("CFBundleIdentifier", app.get("bundleIdentifier"))
+    if args.migrate:
+        if not args.ipa:
+            feed["apps"] = entries
+            feed_path.write_text(json.dumps(feed, indent=2, ensure_ascii=False) + "\n")
+            print(f"==> {feed_path.name}: {len(entries)} versions in the per-release layout")
+            return 0
 
-    # AltStore reads versions[0]; older clients (and Feather's fallback path)
-    # read the flat version/versionDate/downloadURL fields, so keep both in sync.
-    app["version"] = version
-    app["versionDate"] = args.date
-    app["versionDescription"] = f"Release {args.tag}."
-    app["downloadURL"] = download_url
-    app["size"] = size
+    if not args.ipa or not args.tag:
+        parser.error("--ipa and --tag are required unless --migrate is given")
+    if not args.ipa.is_file():
+        raise SystemExit(f"error: {args.ipa} not found")
 
-    entry = {
-        "version": version,
-        "buildVersion": build,
-        "date": args.date,
-        "localizedDescription": f"Release {args.tag}. Unsigned IPA for iOS {minimum_os} and later.",
-        "downloadURL": download_url,
-        "size": size,
-        "minOSVersion": minimum_os,
-        "sha256": hashlib.sha256(args.ipa.read_bytes()).hexdigest(),
-    }
+    info = read_app_info(args.ipa)
+    version = str(info.get("CFBundleShortVersionString", "1.0"))
+    build = str(info.get("CFBundleVersion", "1"))
+    minimum_os = info.get("MinimumOSVersion", "17.0")
+    size = args.ipa.stat().st_size
+    url = asset_url(args.repo, version)
 
-    # Keep the whole history: AltStore, SideStore and Feather list every entry
-    # under the app's version history instead of only showing the newest one.
-    versions = [v for v in app.get("versions", []) if not (
-        v.get("version") == version and v.get("buildVersion") == build)]
-    app["versions"] = [entry] + versions[:49]
+    notes = args.notes_file.read_text().strip() if args.notes_file and args.notes_file.is_file() else ""
+    description = f"Unsigned IPA for iOS {minimum_os} and later."
+    if notes:
+        description = f"{notes}\n\n{description}"
 
-    # AltStore and Feather show the newest news item as the update caption.
-    news = {
-        "title": f"{app.get('name', 'FMHY Reader')} {version}",
-        "identifier": f"{version}-{build}",
-        "caption": f"Build {build} · iOS {minimum_os}+ · unsigned IPA",
-        "date": args.date,
-        "tintColor": app.get("tintColor", "#7C5CFF"),
-        "appID": app.get("bundleIdentifier"),
-    }
-    previous_news = [n for n in feed.get("news", []) if n.get("identifier") != news["identifier"]]
-    feed["news"] = [news] + previous_news[:9]
+    entry = make_entry(
+        entries[0],
+        version=version,
+        build=build,
+        date=args.date,
+        size=size,
+        minimum_os=minimum_os,
+        download_url=url,
+        description=description,
+        sha256=hashlib.sha256(args.ipa.read_bytes()).hexdigest(),
+    )
+
+    feed["apps"] = [entry] + [
+        other for other in entries
+        if not (other["version"] == version and other["buildVersion"] == build)
+    ][: MAX_ENTRIES - 1]
+
+    previous_news = [n for n in feed.get("news", []) if n.get("title") != f"FMHY {version}"]
+    news = news_entry(feed, entry, version, build, normalise_date(args.date), notes)
+    feed["news"] = ([news] + previous_news)[:MAX_NEWS]
 
     feed_path.write_text(json.dumps(feed, indent=2, ensure_ascii=False) + "\n")
     try:
         label = feed_path.relative_to(REPO_ROOT)
     except ValueError:
         label = feed_path
-    print(f"==> {label}: {version} ({build}) for {minimum_os}+, {size} bytes")
+    print(f"==> {label}: {version} ({build}) for iOS {minimum_os}+, {size} bytes, {len(feed['apps'])} versions")
     return 0
 
 

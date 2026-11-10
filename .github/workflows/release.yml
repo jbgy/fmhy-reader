@@ -33,6 +33,18 @@ jobs:
           BUILD_NUMBER_OVERRIDE: ${{ github.run_number }}
         run: ./scripts/build-macos.sh
 
+      # Notes come from the commits since the previous tag, so the release and
+      # the feed describe what changed instead of repeating install steps.
+      - name: Draft release notes
+        run: |
+          PREV=$(git describe --tags --abbrev=0 "${{ github.ref_name }}^" 2>/dev/null \
+            || git rev-list --max-parents=0 HEAD)
+          python3 scripts/release-notes.py --from "$PREV" --to "${{ github.ref_name }}" \
+            --format markdown > build/notes.md
+          python3 scripts/release-notes.py --from "$PREV" --to "${{ github.ref_name }}" \
+            --format plain > build/notes.txt
+          cat build/notes.md
+
       # The feed entry is generated on top of main rather than on the tag, so a
       # release never conflicts with an earlier one that already pushed a feed
       # commit (the tag itself may lag behind main).
@@ -45,7 +57,8 @@ jobs:
           python3 scripts/make-altstore-source.py \
             --ipa build/FMHY.ipa \
             --repo "${{ github.repository }}" \
-            --tag "${{ github.ref_name }}"
+            --tag "${{ github.ref_name }}" \
+            --notes-file build/notes.txt
           git add docs/apps.json
           git commit -m "chore(release): publish ${{ github.ref_name }}"
           git push origin release-feed:main
@@ -54,35 +67,34 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          MIN_OS=$(python3 -c "import json;print(json.load(open('docs/apps.json'))['apps'][0]['versions'][0]['minOSVersion'])")
-          NOTES=$(cat <<EOF
-          Unsigned IPA for AltStore, SideStore, Feather, ESign and Sideloadly. Requires iOS ${MIN_OS} or later.
-
-          macOS: unzip FMHY-macOS.zip, then drag FMHY.app into Applications (right-click to open the first time).
-
-          Add the source once and update from there: https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/main/docs/apps.json
-          EOF
-          )
+          MIN_OS=$(python3 -c "import json;print(json.load(open('docs/apps.json'))['apps'][0]['minOSVersion'])")
+          {
+            cat build/notes.md
+            printf '\n---\n\n'
+            printf 'Unsigned IPA for iOS %s or later. Install with AltStore, SideStore, Feather, ESign or Sideloadly.\n\n' "$MIN_OS"
+            printf '**macOS:** unzip `FMHY-macOS.zip`, drag `FMHY.app` into Applications, then right-click → Open the first time.\n\n'
+            printf '**Source feed:** https://raw.githubusercontent.com/%s/refs/heads/main/docs/apps.json\n' "${{ github.repository }}"
+          } > build/release-body.md
           if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
             gh release upload "${{ github.ref_name }}" \
               build/FMHY.ipa build/FMHY-macOS.zip docs/apps.json --clobber
-            gh release edit "${{ github.ref_name }}" --notes "$NOTES"
+            gh release edit "${{ github.ref_name }}" --notes-file build/release-body.md
           else
             gh release create "${{ github.ref_name }}" \
               build/FMHY.ipa \
               build/FMHY-macOS.zip \
               docs/apps.json \
-              --title "FMHY ${{ github.ref_name }}" \
-              --notes "$NOTES"
+              --title "FMHY ${GITHUB_REF_NAME#v}" \
+              --notes-file build/release-body.md
           fi
 
       - name: Check the feed is live
         run: |
           URL="https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/main/docs/apps.json"
-          WANT=$(python3 -c "import json;print(json.load(open('docs/apps.json'))['apps'][0]['versions'][0]['buildVersion'])")
+          WANT=$(python3 -c "import json;print(json.load(open('docs/apps.json'))['apps'][0]['buildVersion'])")
           GOT=0
           for attempt in $(seq 1 30); do
-            GOT=$(curl -fsS "$URL" | python3 -c "import json,sys;v=json.load(sys.stdin)['apps'][0]['versions'];print(v[0]['buildVersion'] if v else 0)" || echo 0)
+            GOT=$(curl -fsS "$URL" | python3 -c "import json,sys;a=json.load(sys.stdin)['apps'];print(a[0]['buildVersion'] if a else 0)" || echo 0)
             if [ "$GOT" = "$WANT" ]; then
               echo "feed live, serving build $GOT"
               exit 0
