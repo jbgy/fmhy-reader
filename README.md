@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/jbgy/fmhy-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/jbgy/fmhy-reader/actions/workflows/ci.yml)
 [![Release](https://github.com/jbgy/fmhy-reader/actions/workflows/release.yml/badge.svg)](https://github.com/jbgy/fmhy-reader/actions/workflows/release.yml)
+[![AltStore source](https://img.shields.io/badge/AltStore%20%C2%B7%20SideStore%20%C2%B7%20Feather-add%20source-7C5CFF)](https://altdirect.app/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjbgy%2Ffmhy-reader%2Frefs%2Fheads%2Fmain%2Fdocs%2Fapps.json)
+[![Download](https://img.shields.io/badge/download-IPA%20%2B%20macOS%20app-2EA043)](https://github.com/jbgy/fmhy-reader/releases/latest)
 ![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20iPadOS%20%7C%20macOS-7C5CFF)
 ![Swift](https://img.shields.io/badge/Swift-SwiftUI-orange)
 
@@ -26,7 +28,8 @@ repository.
 
 ## Requirements
 
-- Xcode 27 or newer (iOS 27 / macOS 27 deployment targets).
+- Xcode 27 or newer to build: the project uses Xcode's synchronized folder format.
+- The app itself runs on **iOS 17 and later** and **macOS 14 and later**.
 - No Apple Developer account needed to build: the app runs in the simulator and the unsigned
   `.ipa` below is re-signed by whatever sideloader you use.
 
@@ -45,6 +48,15 @@ xcodebuild -project fmhy.xcodeproj -scheme fmhy -configuration Debug \
 xcodebuild -project fmhy.xcodeproj -scheme fmhy -configuration Debug \
   -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
 ```
+
+## Tests
+
+```bash
+xcodebuild test -project fmhy.xcodeproj -scheme fmhy -destination 'platform=macOS'
+```
+
+The suite covers the markdown parser, cross-link routing, bookmark export/import and search
+ranking. CI runs it on every push.
 
 ## Install on a device
 
@@ -68,6 +80,29 @@ the same URL into *Sources*, or install the `.ipa` from the release page directl
 ./scripts/build-ipa.sh --signed TEAM   # signed with your Apple team
 ```
 
+### On a Mac
+
+There is no sideloading on macOS — every release also ships the Mac app itself as
+`FMHY-macOS.zip`, attached to the same release:
+
+```bash
+curl -LO https://github.com/jbgy/fmhy-reader/releases/latest/download/FMHY-macOS.zip
+unzip FMHY-macOS.zip && open FMHY.app
+```
+
+Drag `FMHY.app` into Applications to keep it, and right-click → Open the first time. If macOS
+still refuses to launch it, clear the quarantine flag once:
+
+```bash
+xattr -dr com.apple.quarantine FMHY.app
+```
+
+Or build it locally:
+
+```bash
+./scripts/build-macos.sh               # build/FMHY-macOS.zip
+```
+
 ## Releasing
 
 Pushing a tag runs the whole pipeline:
@@ -77,9 +112,10 @@ git tag v1.1 && git push origin v1.1
 ```
 
 `.github/workflows/release.yml` builds the unsigned IPA with `VERSION_OVERRIDE` from the tag and
-`BUILD_NUMBER_OVERRIDE` from the workflow run number, adds the version to `docs/apps.json`
-(download URL, size, SHA-256, minimum OS), creates the GitHub release with `FMHY.ipa` attached,
-and commits the refreshed feed back to `main` — so people who added the source get the update
+`BUILD_NUMBER_OVERRIDE` from the workflow run number, packages the macOS app as
+`FMHY-macOS.zip`, adds the version to `docs/apps.json` (download URL, size, SHA-256, minimum OS,
+plus a news entry per release), creates the GitHub release with both binaries attached, and
+commits the refreshed feed back to `main` — so people who added the source get the update
 through AltStore/Feather without doing anything.
 
 `ci.yml` builds iOS and macOS on every push and pull request and validates the scripts and feed.
@@ -105,8 +141,9 @@ fmhy/
   Services/    markdown parser and the cache/update store
   Views/       overview, section pages, search, bookmarks, setup
   Resources/   bundled wiki snapshot
+fmhyTests/     parser, routing, bookmark and search tests
 docs/apps.json AltStore-format source feed
-scripts/       IPA packaging, AltStore feed update, icon generator
+scripts/       IPA and macOS packaging, AltStore feed update, icon generator
 ```
 
 ## Credits

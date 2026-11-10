@@ -27,6 +27,12 @@ jobs:
           ./scripts/build-ipa.sh
           cp build/FMHY-*-unsigned.ipa build/FMHY.ipa
 
+      - name: Build macOS app
+        env:
+          VERSION_OVERRIDE: ${{ github.ref_name }}
+          BUILD_NUMBER_OVERRIDE: ${{ github.run_number }}
+        run: ./scripts/build-macos.sh
+
       - name: Update AltStore source feed
         run: |
           python3 scripts/make-altstore-source.py \
@@ -38,11 +44,17 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          MIN_OS=$(python3 -c "import json;print(json.load(open('docs/apps.json'))['apps'][0]['versions'][0]['minOSVersion'])")
           gh release create "${{ github.ref_name }}" \
             build/FMHY.ipa \
+            build/FMHY-macOS.zip \
             docs/apps.json \
             --title "FMHY ${{ github.ref_name }}" \
-            --notes "Unsigned IPA for AltStore, SideStore, Feather, ESign and Sideloadly. Add the source once and update from there: https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/main/docs/apps.json"
+            --notes "Unsigned IPA for AltStore, SideStore, Feather, ESign and Sideloadly. Requires iOS ${MIN_OS} or later.
+
+          macOS: unzip FMHY-macOS.zip, then drag FMHY.app into Applications (right-click to open the first time).
+
+          Add the source once and update from there: https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/main/docs/apps.json"
 
       - name: Check the feed is live
         run: |

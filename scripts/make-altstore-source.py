@@ -79,7 +79,7 @@ def main() -> int:
         "version": version,
         "buildVersion": build,
         "date": args.date,
-        "localizedDescription": f"Release {args.tag}.",
+        "localizedDescription": f"Release {args.tag}. Unsigned IPA for iOS {minimum_os} and later.",
         "downloadURL": download_url,
         "size": size,
         "minOSVersion": minimum_os,
@@ -89,6 +89,18 @@ def main() -> int:
     versions = [v for v in app.get("versions", []) if not (
         v.get("version") == version and v.get("buildVersion") == build)]
     app["versions"] = [entry] + versions[:19]
+
+    # AltStore and Feather show the newest news item as the update caption.
+    news = {
+        "title": f"{app.get('name', 'FMHY Reader')} {version}",
+        "identifier": f"{version}-{build}",
+        "caption": f"Build {build} · iOS {minimum_os}+ · unsigned IPA",
+        "date": args.date,
+        "tintColor": app.get("tintColor", "#7C5CFF"),
+        "appID": app.get("bundleIdentifier"),
+    }
+    previous_news = [n for n in feed.get("news", []) if n.get("identifier") != news["identifier"]]
+    feed["news"] = [news] + previous_news[:9]
 
     feed_path.write_text(json.dumps(feed, indent=2, ensure_ascii=False) + "\n")
     try:
