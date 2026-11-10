@@ -21,7 +21,7 @@
         {
           "version": "1.3",
           "buildVersion": "4",
-          "date": "2026-11-10T11:00:07Z",
+          "date": "2026-11-10T10:58:29Z",
           "localizedDescription": "Release v1.3. Unsigned IPA for iOS 17.0 and later.",
           "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.3/FMHY.ipa",
           "size": 2587986,
@@ -29,9 +29,19 @@
           "sha256": "61495b3eac07018dfaa271fffc4dd2345ab907dbec3df7b2e8b514fe29edd442"
         },
         {
+          "version": "1.2",
+          "buildVersion": "3",
+          "date": "2026-11-10T10:45:08Z",
+          "localizedDescription": "Release v1.2. Unsigned IPA for iOS 17.0 and later.",
+          "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.2/FMHY.ipa",
+          "size": 2587858,
+          "minOSVersion": "17.0",
+          "sha256": "af366beed4acdef9c5d3e3d5778a8c747a2e2b6c18e33ab5400fae0ef010e4ee"
+        },
+        {
           "version": "1.1",
           "buildVersion": "2",
-          "date": "2026-11-10",
+          "date": "2026-11-10T10:30:37Z",
           "localizedDescription": "Release v1.1. Unsigned IPA for iOS 17.0 and later.",
           "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.1/FMHY.ipa",
           "size": 2587856,
@@ -41,26 +51,16 @@
         {
           "version": "1.0",
           "buildVersion": "1",
-          "date": "2026-11-10",
+          "date": "2026-11-10T09:54:03Z",
           "localizedDescription": "Release v1.0.",
           "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.0/FMHY.ipa",
           "size": 2578807,
           "minOSVersion": "27.0",
           "sha256": "7526d09ebd551ab618ca241da7067cb2a9bbd41360425027bcbc026ae105c3ba"
-        },
-        {
-          "version": "1.2",
-          "buildVersion": "3",
-          "date": "2026-11-10",
-          "localizedDescription": "Release v1.2. Unsigned IPA for iOS 17.0 and later.",
-          "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.2/FMHY.ipa",
-          "size": 2587858,
-          "minOSVersion": "17.0",
-          "sha256": "af366beed4acdef9c5d3e3d5778a8c747a2e2b6c18e33ab5400fae0ef010e4ee"
         }
       ],
       "version": "1.3",
-      "versionDate": "2026-11-10T11:00:07Z",
+      "versionDate": "2026-11-10T10:58:29Z",
       "versionDescription": "Release v1.3. Unsigned IPA for iOS 17.0 and later.",
       "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.3/FMHY.ipa",
       "size": 2587986
