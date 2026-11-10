@@ -86,9 +86,11 @@ def main() -> int:
         "sha256": hashlib.sha256(args.ipa.read_bytes()).hexdigest(),
     }
 
+    # Keep the whole history: AltStore, SideStore and Feather list every entry
+    # under the app's version history instead of only showing the newest one.
     versions = [v for v in app.get("versions", []) if not (
         v.get("version") == version and v.get("buildVersion") == build)]
-    app["versions"] = [entry] + versions[:19]
+    app["versions"] = [entry] + versions[:49]
 
     # AltStore and Feather show the newest news item as the update caption.
     news = {
