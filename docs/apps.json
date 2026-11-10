@@ -19,6 +19,16 @@
       "screenshots": [],
       "versions": [
         {
+          "version": "1.1",
+          "buildVersion": "2",
+          "date": "2026-11-10",
+          "localizedDescription": "Release v1.1. Unsigned IPA for iOS 17.0 and later.",
+          "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.1/FMHY.ipa",
+          "size": 2587856,
+          "minOSVersion": "17.0",
+          "sha256": "b6acef7bd46afc4863658ae28e04a71a410e375012c62dd784d848ca83d2ee9d"
+        },
+        {
           "version": "1.0",
           "buildVersion": "1",
           "date": "2026-11-10",
@@ -31,5 +41,14 @@
       ]
     }
   ],
-  "news": []
+  "news": [
+    {
+      "title": "FMHY 1.1",
+      "identifier": "1.1-2",
+      "caption": "Build 2 · iOS 17.0+ · unsigned IPA",
+      "date": "2026-11-10",
+      "tintColor": "#7C5CFF",
+      "appID": "iOS.jbugel.fmhy"
+    }
+  ]
 }

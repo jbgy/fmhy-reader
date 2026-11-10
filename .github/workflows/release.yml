@@ -45,23 +45,52 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           MIN_OS=$(python3 -c "import json;print(json.load(open('docs/apps.json'))['apps'][0]['versions'][0]['minOSVersion'])")
-          gh release create "${{ github.ref_name }}" \
-            build/FMHY.ipa \
-            build/FMHY-macOS.zip \
-            docs/apps.json \
-            --title "FMHY ${{ github.ref_name }}" \
-            --notes "Unsigned IPA for AltStore, SideStore, Feather, ESign and Sideloadly. Requires iOS ${MIN_OS} or later.
+          NOTES=$(cat <<EOF
+          Unsigned IPA for AltStore, SideStore, Feather, ESign and Sideloadly. Requires iOS ${MIN_OS} or later.
 
           macOS: unzip FMHY-macOS.zip, then drag FMHY.app into Applications (right-click to open the first time).
 
-          Add the source once and update from there: https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/main/docs/apps.json"
+          Add the source once and update from there: https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/main/docs/apps.json
+          EOF
+          )
+          if gh release view "${{ github.ref_name }}" >/dev/null 2>&1; then
+            gh release upload "${{ github.ref_name }}" \
+              build/FMHY.ipa build/FMHY-macOS.zip docs/apps.json --clobber
+            gh release edit "${{ github.ref_name }}" --notes "$NOTES"
+          else
+            gh release create "${{ github.ref_name }}" \
+              build/FMHY.ipa \
+              build/FMHY-macOS.zip \
+              docs/apps.json \
+              --title "FMHY ${{ github.ref_name }}" \
+              --notes "$NOTES"
+          fi
+
+      - name: Commit updated feed
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add docs/apps.json
+          if git diff --cached --quiet; then
+            echo "feed unchanged"
+          else
+            git commit -m "chore(release): publish ${{ github.ref_name }}"
+            # The run is on a tag, so push the commit to main explicitly.
+            if git push origin HEAD:main; then
+              echo "feed committed to main"
+            else
+              git fetch origin main
+              git rebase origin/main
+              git push origin HEAD:main
+            fi
+          fi
 
       - name: Check the feed is live
         run: |
           URL="https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/main/docs/apps.json"
           WANT=$(python3 -c "import json;print(json.load(open('docs/apps.json'))['apps'][0]['versions'][0]['buildVersion'])")
           GOT=0
-          for attempt in $(seq 1 12); do
+          for attempt in $(seq 1 30); do
             GOT=$(curl -fsS "$URL" | python3 -c "import json,sys;v=json.load(sys.stdin)['apps'][0]['versions'];print(v[0]['buildVersion'] if v else 0)" || echo 0)
             if [ "$GOT" = "$WANT" ]; then
               echo "feed live, serving build $GOT"
@@ -70,18 +99,5 @@ jobs:
             echo "attempt $attempt: feed at build $GOT, want $WANT"
             sleep 10
           done
-          echo "::error::feed still serving build $GOT after 2 minutes"
+          echo "::error::feed still serving build $GOT after 5 minutes"
           exit 1
-
-      - name: Commit updated feed
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git checkout main
-          git add docs/apps.json
-          if git diff --cached --quiet; then
-            echo "feed unchanged"
-          else
-            git commit -m "chore(release): publish ${{ github.ref_name }}"
-            git push origin main
-          fi
