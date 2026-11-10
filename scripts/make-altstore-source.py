@@ -48,7 +48,14 @@ def main() -> int:
     parser.add_argument("--repo", required=True, help="GitHub repository, owner/name")
     parser.add_argument("--tag", required=True, help="Release tag, e.g. v1.0")
     parser.add_argument("--feed", type=Path, default=FEED)
-    parser.add_argument("--date", default=datetime.date.today().isoformat())
+    parser.add_argument(
+        "--date",
+        default=datetime.datetime.now(datetime.timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z"),
+        help="ISO 8601 release timestamp; defaults to now (UTC)",
+    )
     args = parser.parse_args()
 
     if not args.ipa.is_file():
@@ -74,6 +81,14 @@ def main() -> int:
     app = feed["apps"][0]
     app["iconURL"] = f"{raw_base}/icon.png"
     app["bundleIdentifier"] = info.get("CFBundleIdentifier", app.get("bundleIdentifier"))
+
+    # AltStore reads versions[0]; older clients (and Feather's fallback path)
+    # read the flat version/versionDate/downloadURL fields, so keep both in sync.
+    app["version"] = version
+    app["versionDate"] = args.date
+    app["versionDescription"] = f"Release {args.tag}."
+    app["downloadURL"] = download_url
+    app["size"] = size
 
     entry = {
         "version": version,
