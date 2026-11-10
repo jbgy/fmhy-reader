@@ -12,6 +12,13 @@ stuff on the internet. This project is not affiliated with or endorsed by the FM
 and keeps working offline; the content then updates itself silently from the wiki's GitHub
 repository.
 
+<table>
+  <tr>
+    <td><img src="docs/images/overview.png" alt="The overview grid with every wiki section, on macOS" width="620"></td>
+    <td><img src="docs/images/posts.png" alt="One of FMHY's monthly update posts, read on iPhone" width="200"></td>
+  </tr>
+</table>
+
 ## Features
 
 - **All 26 wiki sections** in a sidebar, with a tile overview as the start screen.
@@ -147,6 +154,10 @@ python3 scripts/make-site.py          # rewrite the landing page and monthly pos
 python3 scripts/make-site.py --check  # fail if the committed pages are stale
 ```
 
+The pictures above are rendered from the app's own layout and snapshot data, not hand-pasted
+screenshots: `swift scripts/make-mockups.swift` rewrites `docs/images/` (SF Symbols, SF Pro, and
+link counts read from `fmhy/Resources/WikiSeed`).
+
 Serve it once with **Settings → Pages → Deploy from a branch → `main` / `docs`**; after that the
 release workflow publishes new posts with every tag. `ci.yml` fails if the pages fall behind
 the feed.
@@ -162,6 +173,7 @@ fmhy/
 fmhyTests/     parser, routing, bookmark and search tests
 docs/apps.json AltStore-format source feed
 docs/index.html, docs/posts/  generated landing page and monthly update posts
+docs/images/  mockups for the README and the landing page
 scripts/       IPA and macOS packaging, AltStore feed update, icon generator
 ```
 

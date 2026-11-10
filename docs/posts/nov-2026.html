@@ -121,6 +121,22 @@ li { margin: 3px 0; }
 .release h2 { margin: 0; }
 .release time { font-size: 14px; }
 .meta { font-size: 13px; margin: 0; }
+.screens {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 26px 0 4px;
+}
+.screens img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+.screens .desktop { flex: 3; }
+.screens .phone { flex: 1; align-self: center; border: 0; max-height: 380px; object-fit: contain; }
+@media (max-width: 560px) { .screens .phone { display: none; } }
 .pager { margin-top: 28px; }
 footer {
   border-top: 1px solid var(--line);

@@ -147,6 +147,22 @@ li { margin: 3px 0; }
 .release h2 { margin: 0; }
 .release time { font-size: 14px; }
 .meta { font-size: 13px; margin: 0; }
+.screens {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 26px 0 4px;
+}
+.screens img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+.screens .desktop { flex: 3; }
+.screens .phone { flex: 1; align-self: center; border: 0; max-height: 380px; object-fit: contain; }
+@media (max-width: 560px) { .screens .phone { display: none; } }
 .pager { margin-top: 28px; }
 footer {
   border-top: 1px solid var(--line);
@@ -300,6 +316,11 @@ def render_landing(feed: dict, months: list[tuple[datetime.datetime, list[dict]]
     <a class="button" href="https://github.com/{repo}/releases/latest/download/FMHY-macOS.zip">macOS app</a>
   </div>
   <p class="note">iPhone, iPad and Mac · free and open source · iOS 17 and later</p>
+</section>
+
+<section class="screens">
+  <img class="desktop" src="images/overview.png" alt="The overview grid with every wiki section, on macOS">
+  <img class="phone" src="images/posts.png" alt="One of FMHY's monthly update posts on iPhone">
 </section>
 
 <section class="card">
