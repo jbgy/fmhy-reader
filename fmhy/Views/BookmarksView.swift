@@ -28,6 +28,9 @@ struct BookmarksView: View {
     @State private var folderTarget: Bookmark?
     @State private var exportDocument: BookmarkExportDocument?
     @State private var statusMessage: String?
+    /// Backed by the same defaults key as `BookmarkBackup`, so the menu and the
+    /// footer redraw the moment the copy is turned on or off.
+    @AppStorage(BookmarkBackup.enabledKey) private var backupEnabled = false
 
     private var folders: [String] {
         Set(bookmarks.compactMap { $0.folder }.filter { !$0.isEmpty }).sorted()
@@ -154,10 +157,15 @@ struct BookmarksView: View {
                 isImporting = true
             }
             Divider()
-            Toggle("Automatic Backup", isOn: Binding(
-                get: { BookmarkBackup.isEnabled },
-                set: { setBackup($0) }
-            ))
+            // A menu toggle only redraws its checkmark when an observed value
+            // changes, so the action is spelled out instead.
+            Button(
+                backupEnabled ? "Turn Off Automatic Backup" : "Turn On Automatic Backup",
+                systemImage: backupEnabled ? "externaldrive.badge.xmark" : "externaldrive.badge.checkmark"
+            ) {
+                backupEnabled.toggle()
+                setBackup(backupEnabled)
+            }
             if BookmarkBackup.store.exists, let backup = BookmarkBackup.store.records() {
                 Button(
                     "Restore \(backup.count) Bookmark\(backup.count == 1 ? "" : "s") from Backup",
@@ -268,7 +276,7 @@ struct BookmarksView: View {
 
     private var footerText: String {
         let saved = "\(bookmarks.count) saved"
-        return BookmarkBackup.isEnabled
+        return backupEnabled
             ? "\(saved) · automatic backup on"
             : "\(saved) · stored only on this device"
     }
