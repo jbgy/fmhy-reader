@@ -97,7 +97,7 @@ struct BookmarksView: View {
                 #else
                 .listStyle(.inset)
                 #endif
-                .searchable(text: $query, prompt: "Search bookmarks")
+                .inlineSearchable(text: $query, prompt: "Search bookmarks")
             }
         }
         .navigationTitle("Bookmarks")
