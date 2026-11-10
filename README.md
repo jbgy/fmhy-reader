@@ -12,6 +12,12 @@ stuff on the internet. This project is not affiliated with or endorsed by the FM
 and keeps working offline; the content then updates itself silently from the wiki's GitHub
 repository.
 
+<h3 align="center">
+  <a href="https://altdirect.app/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjbgy%2Ffmhy-reader%2Frefs%2Fheads%2Fmain%2Fdocs%2Fapps.json"><img src="https://altdirect.app/assets/png/AltSource_Blue.png" width="200" alt="Add the FMHY Reader source to AltStore, SideStore or Feather"></a>
+  &nbsp;
+  <a href="https://github.com/jbgy/fmhy-reader/releases/latest"><img src="https://altdirect.app/assets/png/Download_Blue.png" width="200" alt="Download the latest unsigned IPA or macOS app"></a>
+</h3>
+
 ## Screens
 
 <p align="center">
