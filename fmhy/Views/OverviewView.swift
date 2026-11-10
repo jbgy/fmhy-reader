@@ -12,11 +12,9 @@ struct OverviewView: View {
     var onChangeInstance: () -> Void
 
     @Environment(WikiStore.self) private var store
-    @Environment(\.openWikiURL) private var openURL
     @AppStorage("overviewHintDismissed") private var hintDismissed = false
 
     private let columns = [GridItem(.adaptive(minimum: 150, maximum: 230), spacing: 12)]
-    private static let postsURL = URL(string: "https://jbgy.github.io/fmhy-reader/posts/")!
 
     var body: some View {
         ScrollView {
@@ -73,14 +71,14 @@ struct OverviewView: View {
                 infoChip("\(store.catalog.count) sections")
                 infoChip("\(store.totalEntryCount) links")
 
-                // Monthly release posts live on the project site.
+                // FMHY's monthly update posts, read in the app.
                 Button {
-                    openURL(Self.postsURL)
+                    selection = .posts
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: "sparkles")
+                        Image(systemName: "newspaper")
                             .font(.system(size: 8, weight: .semibold))
-                        Text("Updates")
+                        Text("Posts")
                             .lineLimit(1)
                     }
                     .font(.caption2.weight(.medium))
@@ -90,7 +88,7 @@ struct OverviewView: View {
                     .background(.tint.opacity(0.14), in: .capsule)
                 }
                 .buttonStyle(.plain)
-                .help("Monthly release notes")
+                .help("Monthly posts from FMHY")
 
                 Button(action: onChangeInstance) {
                     HStack(spacing: 5) {

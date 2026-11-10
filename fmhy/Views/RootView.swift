@@ -13,6 +13,7 @@ enum SidebarItem: Hashable {
     case page(String)
     case search
     case bookmarks
+    case posts
 }
 
 struct RootView: View {
@@ -122,6 +123,8 @@ struct RootView: View {
             SearchView()
         case .bookmarks:
             BookmarksView()
+        case .posts:
+            PostsView()
         case .overview, .none:
             OverviewView(selection: $selection, onChangeInstance: { showInstanceSheet = true })
         }

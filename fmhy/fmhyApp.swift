@@ -9,6 +9,7 @@ import SwiftData
 @main
 struct FMHYApp: App {
     @State private var store = WikiStore()
+    @State private var postsStore = FMHYPostsStore()
 
     private let modelContainer: ModelContainer = {
         let schema = Schema([Bookmark.self])
@@ -26,6 +27,7 @@ struct FMHYApp: App {
         WindowGroup {
             RootView()
                 .environment(store)
+                .environment(postsStore)
         }
         .modelContainer(modelContainer)
         #if os(macOS)
