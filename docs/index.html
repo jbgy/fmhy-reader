@@ -121,6 +121,22 @@ li { margin: 3px 0; }
 .release h2 { margin: 0; }
 .release time { font-size: 14px; }
 .meta { font-size: 13px; margin: 0; }
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 26px 0 4px;
+}
+.gallery figure { margin: 0; }
+.gallery img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+}
+.gallery figcaption { margin-top: 8px; font-size: 12.5px; color: var(--muted); text-align: center; }
+@media (max-width: 560px) { .gallery { grid-template-columns: repeat(2, 1fr); } }
 .pager { margin-top: 28px; }
 footer {
   border-top: 1px solid var(--line);
@@ -152,6 +168,15 @@ footer {
     <a class="button" href="https://github.com/jbgy/fmhy-reader/releases/latest/download/FMHY-macOS.zip">macOS app</a>
   </div>
   <p class="note">iPhone, iPad and Mac · free and open source · iOS 17 and later</p>
+</section>
+
+<section class="gallery">
+  <figure><img src="images/OverviewList.png" alt="Overview with every section and its live link count"><figcaption>Overview: all 26 sections, live link counts.</figcaption></figure>
+  <figure><img src="images/AdblockingAndPrivacyList.png" alt="A section with callouts, sub-sections and star-to-save rows"><figcaption>Every section, with callouts and sub-sections.</figcaption></figure>
+  <figure><img src="images/AdblockingAndPrivacyJumpTo.png" alt="The Jump To sheet listing categories and languages"><figcaption>Jump To any category or language.</figcaption></figure>
+  <figure><img src="images/Searching_uBlock_inWiki.png" alt="Search results showing the section each link lives in"><figcaption>Search tells you where each link lives.</figcaption></figure>
+  <figure><img src="images/SearchingVideo.png" alt="Typing in search narrows the sidebar to matching sections"><figcaption>Type to narrow the sidebar.</figcaption></figure>
+  <figure><img src="images/InstanceList.png" alt="First launch, picking the domain the app opens"><figcaption>First launch: pick your domain.</figcaption></figure>
 </section>
 
 <section class="card">

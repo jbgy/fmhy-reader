@@ -12,6 +12,19 @@ stuff on the internet. This project is not affiliated with or endorsed by the FM
 and keeps working offline; the content then updates itself silently from the wiki's GitHub
 repository.
 
+## Screens
+
+<p align="center">
+  <img src="docs/images/OverviewList.png" alt="Overview with every section and its live link count" width="230">
+  <img src="docs/images/AdblockingAndPrivacyList.png" alt="A section with callouts, sub-sections and star-to-save rows" width="230">
+  <img src="docs/images/AdblockingAndPrivacyJumpTo.png" alt="The Jump To sheet listing categories and languages" width="230">
+</p>
+<p align="center">
+  <img src="docs/images/Searching_uBlock_inWiki.png" alt="Search results showing the section each link lives in" width="230">
+  <img src="docs/images/SearchingVideo.png" alt="Typing in search narrows the sidebar to matching sections" width="230">
+  <img src="docs/images/InstanceList.png" alt="First launch, picking the domain the app opens" width="230">
+</p>
+
 ## Features
 
 - **All 26 wiki sections** in a sidebar, with a tile overview as the start screen.
@@ -162,6 +175,7 @@ fmhy/
 fmhyTests/     parser, routing, bookmark and search tests
 docs/apps.json AltStore-format source feed
 docs/index.html, docs/posts/  generated landing page and monthly update posts
+docs/images/  screenshots used by this README and the landing page
 scripts/       IPA and macOS packaging, AltStore feed update, icon generator
 ```
 
