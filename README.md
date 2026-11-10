@@ -1,12 +1,12 @@
-# FMHY
+# FMHY Reader
 
-[![CI](https://github.com/jbugel-lol/fmhy-wiki/actions/workflows/ci.yml/badge.svg)](https://github.com/jbugel-lol/fmhy-wiki/actions/workflows/ci.yml)
-[![Release](https://github.com/jbugel-lol/fmhy-wiki/actions/workflows/release.yml/badge.svg)](https://github.com/jbugel-lol/fmhy-wiki/actions/workflows/release.yml)
+[![CI](https://github.com/jbugel-lol/fmhy-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/jbugel-lol/fmhy-reader/actions/workflows/ci.yml)
+[![Release](https://github.com/jbugel-lol/fmhy-reader/actions/workflows/release.yml/badge.svg)](https://github.com/jbugel-lol/fmhy-reader/actions/workflows/release.yml)
 ![Platforms](https://img.shields.io/badge/platforms-iOS%20%7C%20iPadOS%20%7C%20macOS-7C5CFF)
 ![Swift](https://img.shields.io/badge/Swift-SwiftUI-orange)
 
-An unofficial, local-first app for [FMHY](https://fmhy.net), the largest collection of free
-stuff on the internet. Every section of the wiki is bundled with the app, so it opens instantly
+An unofficial, local-first reader for [FMHY](https://fmhy.net), the largest collection of free
+stuff on the internet. This project is not affiliated with or endorsed by the FMHY team. Every section of the wiki is bundled with the app, so it opens instantly
 and keeps working offline; the content then updates itself silently from the wiki's GitHub
 repository.
 
@@ -54,10 +54,10 @@ ESign, Sideloadly and TrollStore expect — they re-sign it with your own certif
 **Add the source (recommended, updates automatically):**
 
 ```
-https://raw.githubusercontent.com/jbugel-lol/fmhy-wiki/main/docs/apps.json
+https://raw.githubusercontent.com/jbugel-lol/fmhy-reader/main/docs/apps.json
 ```
 
-One-tap add with [AltDirect](https://altdirect.app/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjbugel-lol%2Ffmhy-wiki%2Fmain%2Fdocs%2Fapps.json):
+One-tap add with [AltDirect](https://altdirect.app/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjbugel-lol%2Ffmhy-reader%2Fmain%2Fdocs%2Fapps.json):
 it offers AltStore Classic, SideStore, Feather, StikStore and TrollApps buttons. In ESign, paste
 the same URL into *Sources*, or install the `.ipa` from the release page directly.
 
