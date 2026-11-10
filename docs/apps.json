@@ -8,6 +8,22 @@
   "identifier": "com.jbugel.fmhy.altstore",
   "apps": [
     {
+      "name": "FMHY 1.5",
+      "bundleIdentifier": "iOS.jbugel.fmhy",
+      "developerName": "jbgy",
+      "subtitle": "FMHY Reader · Build 6",
+      "localizedDescription": "Added:\n- Feed: publish one source entry per release with notes\n- bookmarks: back up bookmarks only after the user opts in\n- site: generate a landing page and monthly update posts from the feed\n\nUnsigned IPA for iOS 17.0 and later.",
+      "iconURL": "https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/icon.png",
+      "tintColor": "#7C5CFF",
+      "version": "1.5",
+      "buildVersion": "6",
+      "versionDate": "2026-11-10T13:11:29Z",
+      "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.5/FMHY.ipa",
+      "size": 2599518,
+      "minOSVersion": "17.0",
+      "sha256": "8ba02d99a13fae060e567f43fb33634a01eccec564ea04462986a5ddc067b176"
+    },
+    {
       "name": "FMHY 1.4",
       "bundleIdentifier": "iOS.jbugel.fmhy",
       "developerName": "jbgy",
@@ -89,6 +105,14 @@
     }
   ],
   "news": [
+    {
+      "title": "FMHY 1.5",
+      "identifier": "1.5-6",
+      "caption": "Feed: publish one source entry per release with notes (+2 more)",
+      "date": "2026-11-10T13:11:29Z",
+      "tintColor": "#7C5CFF",
+      "appID": "iOS.jbugel.fmhy"
+    },
     {
       "title": "FMHY 1.4",
       "identifier": "1.4-5",
