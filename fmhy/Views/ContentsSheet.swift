@@ -93,7 +93,7 @@ struct ContentsSheet: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
-            .searchable(text: $query, prompt: "Category or language")
+            .inlineSearchable(text: $query, prompt: "Category or language")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }

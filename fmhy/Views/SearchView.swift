@@ -61,7 +61,7 @@ struct SearchView: View {
             }
         }
         .navigationTitle("Search")
-        .searchable(text: $query, prompt: "Sites, tools, groups…")
+        .inlineSearchable(text: $query, prompt: "Sites, tools, groups…")
     }
 
     private func contextLine(_ item: SearchItem) -> String {

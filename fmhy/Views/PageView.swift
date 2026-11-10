@@ -138,7 +138,7 @@ struct PageView: View {
             #else
             .listStyle(.inset)
             #endif
-            .searchable(text: $query, prompt: "Search \(page.title)")
+            .inlineSearchable(text: $query, prompt: "Search \(page.title)")
             .overlay {
                 if categories.isEmpty, !query.trimmingCharacters(in: .whitespaces).isEmpty {
                     ContentUnavailableView.search(text: query)
