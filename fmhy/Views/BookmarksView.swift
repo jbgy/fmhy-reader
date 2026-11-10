@@ -68,6 +68,10 @@ struct BookmarksView: View {
                     Label("No Bookmarks Yet", systemImage: "star")
                 } description: {
                     Text("Tap the star next to any link to keep it here, available offline.")
+                } actions: {
+                    if let backup = BookmarkBackup.store.records() {
+                        Button("Restore \(backup.count) from Backup") { restore(backup) }
+                    }
                 }
             } else if filtered.isEmpty {
                 ContentUnavailableView.search(text: query)
@@ -89,7 +93,7 @@ struct BookmarksView: View {
                     }
 
                     Section {} footer: {
-                        Text(statusMessage ?? "\(bookmarks.count) saved · stored only on this device")
+                        Text(statusMessage ?? footerText)
                     }
                 }
                 #if os(iOS)
@@ -148,6 +152,19 @@ struct BookmarksView: View {
             Button("Import Bookmarks…", systemImage: "square.and.arrow.down") {
                 statusMessage = nil
                 isImporting = true
+            }
+            Divider()
+            Toggle("Automatic Backup", isOn: Binding(
+                get: { BookmarkBackup.isEnabled },
+                set: { setBackup($0) }
+            ))
+            if BookmarkBackup.store.exists, let backup = BookmarkBackup.store.records() {
+                Button(
+                    "Restore \(backup.count) Bookmark\(backup.count == 1 ? "" : "s") from Backup",
+                    systemImage: "arrow.counterclockwise"
+                ) {
+                    restore(backup)
+                }
             }
         } label: {
             Image(systemName: "ellipsis.circle")
@@ -239,12 +256,41 @@ struct BookmarksView: View {
             modelContext.delete(bookmark)
             try? modelContext.save()
         }
+        BookmarkBackup.snapshot(in: modelContext)
     }
 
     private func assign(_ bookmark: Bookmark, folder: String?) {
         bookmark.folder = folder
         try? modelContext.save()
+        BookmarkBackup.snapshot(in: modelContext)
         statusMessage = folder.map { "Moved to \($0)." } ?? "Moved to Unfiled."
+    }
+
+    private var footerText: String {
+        let saved = "\(bookmarks.count) saved"
+        return BookmarkBackup.isEnabled
+            ? "\(saved) · automatic backup on"
+            : "\(saved) · stored only on this device"
+    }
+
+    /// Turning the copy on writes it right away; turning it off removes it.
+    private func setBackup(_ enabled: Bool) {
+        BookmarkBackup.isEnabled = enabled
+        if enabled {
+            BookmarkBackup.snapshot(in: modelContext)
+            statusMessage = bookmarks.isEmpty
+                ? "Backup on · a copy is written after the next bookmark."
+                : "Backup on · \(bookmarks.count) bookmarks copied."
+        } else {
+            BookmarkBackup.store.remove()
+            statusMessage = "Backup off · the copy was removed."
+        }
+    }
+
+    private func restore(_ records: [BookmarkRecord]) {
+        let outcome = withAnimation { BookmarkImport.merge(records, into: modelContext) }
+        BookmarkBackup.acceptRestore()
+        statusMessage = "Restored \(outcome.added) bookmark\(outcome.added == 1 ? "" : "s")."
     }
 
     private func createFolder() {
@@ -261,23 +307,9 @@ struct BookmarksView: View {
     }
 
     private func startExport() {
-        exportDocument = BookmarkExportDocument(data: BookmarkArchive.encode(bookmarks.map(record(for:))))
+        exportDocument = BookmarkExportDocument(data: BookmarkArchive.encode(bookmarks.map { BookmarkRecord(bookmark: $0) }))
         statusMessage = nil
         isExporting = true
-    }
-
-    private func record(for bookmark: Bookmark) -> BookmarkRecord {
-        BookmarkRecord(
-            url: bookmark.urlString,
-            title: bookmark.title,
-            summary: bookmark.summary,
-            pageSlug: bookmark.pageSlug,
-            pageTitle: bookmark.pageTitle,
-            categoryTitle: bookmark.categoryTitle,
-            groupTitle: bookmark.groupTitle,
-            folder: bookmark.folder,
-            createdAt: bookmark.createdAt
-        )
     }
 
     private func handleImport(_ result: Result<URL, Error>) {
@@ -289,51 +321,13 @@ struct BookmarksView: View {
             }
 
             let records = try BookmarkArchive.decode(Data(contentsOf: url))
-            let outcome = importRecords(records)
+            let outcome = withAnimation { BookmarkImport.merge(records, into: modelContext) }
             statusMessage = "Imported \(outcome.added) new, updated \(outcome.updated) existing."
         } catch {
             statusMessage = "Import failed: \(error.localizedDescription)"
         }
     }
 
-    /// Skips links that are already saved; reuses an imported folder for them.
-    private func importRecords(_ records: [BookmarkRecord]) -> (added: Int, updated: Int) {
-        let existing = (try? modelContext.fetch(FetchDescriptor<Bookmark>())) ?? []
-        var byURL = Dictionary(
-            existing.map { ($0.urlString, $0) },
-            uniquingKeysWith: { first, _ in first }
-        )
-        var added = 0
-        var updated = 0
-
-        for record in records {
-            if let bookmark = byURL[record.url] {
-                if let folder = record.folder, !folder.isEmpty, bookmark.folder != folder {
-                    bookmark.folder = folder
-                    updated += 1
-                }
-                continue
-            }
-
-            let bookmark = Bookmark(
-                urlString: record.url,
-                title: record.title,
-                summary: record.summary,
-                pageSlug: record.pageSlug,
-                pageTitle: record.pageTitle,
-                categoryTitle: record.categoryTitle,
-                groupTitle: record.groupTitle,
-                folder: record.folder,
-                createdAt: record.createdAt ?? .now
-            )
-            modelContext.insert(bookmark)
-            byURL[record.url] = bookmark
-            added += 1
-        }
-
-        withAnimation { try? modelContext.save() }
-        return (added, updated)
-    }
 }
 
 /// JSON document used by the share sheet.

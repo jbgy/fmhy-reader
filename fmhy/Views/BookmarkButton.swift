@@ -48,5 +48,6 @@ struct BookmarkButton: View {
             }
         }
         try? modelContext.save()
+        BookmarkBackup.snapshot(in: modelContext)
     }
 }

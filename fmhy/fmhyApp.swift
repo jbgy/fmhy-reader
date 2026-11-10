@@ -13,11 +13,13 @@ struct FMHYApp: App {
     private let modelContainer: ModelContainer = {
         let schema = Schema([Bookmark.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        do {
-            return try ModelContainer(for: schema, configurations: [configuration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+        if let container = try? ModelContainer(for: schema, configurations: [configuration]) {
+            return container
         }
+        // A damaged store should not take the app down: start empty and let the
+        // opt-in backup refill the list instead of crashing on launch.
+        let memory = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        return try! ModelContainer(for: schema, configurations: [memory])
     }()
 
     var body: some Scene {

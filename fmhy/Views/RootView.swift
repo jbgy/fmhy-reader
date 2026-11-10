@@ -17,10 +17,12 @@ enum SidebarItem: Hashable {
 
 struct RootView: View {
     @Environment(WikiStore.self) private var store
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @State private var selection: SidebarItem? = .overview
     @State private var browserSheet: BrowserSheet?
     @State private var showInstanceSheet = false
+    @State private var restoreRecords: [BookmarkRecord]?
 
     private var instanceSheetPresented: Binding<Bool> {
         Binding(
@@ -68,11 +70,26 @@ struct RootView: View {
             InstanceSetupView(isFirstRun: store.needsInstanceSetup)
                 .interactiveDismissDisabled(store.needsInstanceSetup)
         }
+        // Restoring is a choice: declining leaves the empty list and the file as
+        // they are, and the same copy is not offered again.
+        .alert(
+            restoreRecords.map { "Restore \($0.count) bookmarks?" } ?? "Restore bookmarks?",
+            isPresented: Binding(
+                get: { restoreRecords != nil },
+                set: { if !$0 { restoreRecords = nil } }
+            )
+        ) {
+            Button("Restore") { restoreBackup() }
+            Button("Not Now", role: .cancel) { BookmarkBackup.declineRestore() }
+        } message: {
+            Text("An earlier backup copy can refill your empty bookmark list.")
+        }
         .task {
             // Launch always lands on the overview. Jumping straight into the
             // last section felt like the app navigating on its own, so reading
             // resumes from the overview's "Recently viewed" row instead.
             await store.bootstrap()
+            offerBackupRestore()
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
@@ -82,6 +99,18 @@ struct RootView: View {
                 }
             }
         }
+    }
+
+    private func offerBackupRestore() {
+        let count = (try? modelContext.fetchCount(FetchDescriptor<Bookmark>())) ?? 0
+        restoreRecords = BookmarkBackup.restoreCandidate(bookmarkCount: count)
+    }
+
+    private func restoreBackup() {
+        guard let records = restoreRecords else { return }
+        withAnimation { BookmarkImport.merge(records, into: modelContext) }
+        BookmarkBackup.acceptRestore()
+        restoreRecords = nil
     }
 
     @ViewBuilder
