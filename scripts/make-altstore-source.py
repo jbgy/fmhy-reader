@@ -64,7 +64,7 @@ def main() -> int:
     feed_path = args.feed if args.feed.is_absolute() else REPO_ROOT / args.feed
     feed = json.loads(feed_path.read_text())
 
-    raw_base = f"https://raw.githubusercontent.com/{args.repo}/main/docs"
+    raw_base = f"https://raw.githubusercontent.com/{args.repo}/refs/heads/main/docs"
     feed["sourceURL"] = f"{raw_base}/apps.json"
     feed["iconURL"] = f"{raw_base}/icon.png"
 

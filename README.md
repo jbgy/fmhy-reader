@@ -54,7 +54,7 @@ ESign, Sideloadly and TrollStore expect — they re-sign it with your own certif
 **Add the source (recommended, updates automatically):**
 
 ```
-https://raw.githubusercontent.com/jbgy/fmhy-reader/main/docs/apps.json
+https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/apps.json
 ```
 
 One-tap add with [AltDirect](https://altdirect.app/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjbgy%2Ffmhy-reader%2Fmain%2Fdocs%2Fapps.json):

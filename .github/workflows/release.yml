@@ -42,7 +42,24 @@ jobs:
             build/FMHY.ipa \
             docs/apps.json \
             --title "FMHY ${{ github.ref_name }}" \
-            --notes "Unsigned IPA for AltStore, SideStore, Feather, ESign and Sideloadly. Add the source once and update from there: https://raw.githubusercontent.com/${{ github.repository }}/main/docs/apps.json"
+            --notes "Unsigned IPA for AltStore, SideStore, Feather, ESign and Sideloadly. Add the source once and update from there: https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/main/docs/apps.json"
+
+      - name: Check the feed is live
+        run: |
+          URL="https://raw.githubusercontent.com/${{ github.repository }}/refs/heads/main/docs/apps.json"
+          WANT=$(python3 -c "import json;print(json.load(open('docs/apps.json'))['apps'][0]['versions'][0]['buildVersion'])")
+          GOT=0
+          for attempt in $(seq 1 12); do
+            GOT=$(curl -fsS "$URL" | python3 -c "import json,sys;v=json.load(sys.stdin)['apps'][0]['versions'];print(v[0]['buildVersion'] if v else 0)" || echo 0)
+            if [ "$GOT" = "$WANT" ]; then
+              echo "feed live, serving build $GOT"
+              exit 0
+            fi
+            echo "attempt $attempt: feed at build $GOT, want $WANT"
+            sleep 10
+          done
+          echo "::error::feed still serving build $GOT after 2 minutes"
+          exit 1
 
       - name: Commit updated feed
         run: |
