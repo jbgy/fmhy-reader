@@ -41,6 +41,20 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
+  test:
+    name: Unit tests
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -project fmhy.xcodeproj \
+            -scheme fmhy \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO
+
   validate:
     name: Validate scripts and source feed
     runs-on: ubuntu-latest

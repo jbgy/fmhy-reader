@@ -333,15 +333,14 @@ struct FMHYMarkdownParser {
 
     private static func stripHeadingMarks(_ heading: String) -> String {
         var text = heading
+        // Headings sometimes contain a link: keep its label first, so the
+        // marker inside the label still gets stripped below.
+        if let link = firstLink(in: text) {
+            text.replaceSubrange(link.range, with: link.title)
+        }
         for prefix in ["► ", "►", "▷ ", "▷", "▶ ", "▶", "→ "] where text.hasPrefix(prefix) {
             text = String(text.dropFirst(prefix.count))
             break
-        }
-        // Headings sometimes contain a link: keep its label.
-        if let link = firstLink(in: text) {
-            var stripped = text
-            stripped.replaceSubrange(link.range, with: link.title)
-            text = stripped
         }
         return cleanInline(text)
     }

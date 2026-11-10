@@ -337,6 +337,7 @@ enum WikiLinkRouter {
         let cleaned = unescaped
             .replacingOccurrences(of: "_", with: " ")
             .replacingOccurrences(of: "+", with: " ")
+            .replacingOccurrences(of: "-", with: " ")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return cleaned.isEmpty ? nil : cleaned
     }
