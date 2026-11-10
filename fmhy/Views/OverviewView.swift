@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct OverviewView: View {
-    @Binding var selection: SidebarItem?
+    var openSection: (String) -> Void
+    var openPosts: () -> Void
     var onChangeInstance: () -> Void
 
     @Environment(WikiStore.self) private var store
@@ -36,7 +37,7 @@ struct OverviewView: View {
                 LazyVGrid(columns: columns, spacing: 12) {
                     ForEach(store.catalog) { definition in
                         Button {
-                            selection = .page(definition.slug)
+                            openSection(definition.slug)
                         } label: {
                             tile(definition)
                         }
@@ -73,7 +74,7 @@ struct OverviewView: View {
 
                 // FMHY's monthly update posts, read in the app.
                 Button {
-                    selection = .posts
+                    openPosts()
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "newspaper")
@@ -133,7 +134,7 @@ struct OverviewView: View {
                 HStack(spacing: 8) {
                     ForEach(changedSections, id: \.slug) { item in
                         Button {
-                            selection = .page(item.slug)
+                            openSection(item.slug)
                         } label: {
                             HStack(spacing: 6) {
                                 Text(item.title)
@@ -165,7 +166,7 @@ struct OverviewView: View {
                 HStack(spacing: 8) {
                     ForEach(store.recentSlugs.compactMap { WikiCatalog.bySlug[$0] }) { definition in
                         Button {
-                            selection = .page(definition.slug)
+                            openSection(definition.slug)
                         } label: {
                             Label(definition.title, systemImage: definition.symbol)
                                 .font(.caption)
@@ -280,6 +281,6 @@ struct OverviewView: View {
 }
 
 #Preview {
-    OverviewView(selection: .constant(.overview), onChangeInstance: {})
+    OverviewView(openSection: { _ in }, openPosts: {}, onChangeInstance: {})
         .environment(WikiStore())
 }

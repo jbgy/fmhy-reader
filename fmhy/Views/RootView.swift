@@ -2,11 +2,14 @@
 //  RootView.swift
 //  fmhy
 //
-//  Adaptive shell: sidebar + detail, which collapses into a stack on iPhone.
+//  Adaptive shell: sidebar + detail on iPad and Mac, a tab bar on iPhone.
 //
 
 import SwiftUI
 import SwiftData
+#if os(iOS)
+import UIKit
+#endif
 
 enum SidebarItem: Hashable {
     case overview
@@ -17,6 +20,21 @@ enum SidebarItem: Hashable {
     case settings
 }
 
+#if os(iOS)
+/// A page pushed on top of an iPhone tab.
+enum Route: Hashable {
+    case page(String)
+    case posts
+}
+
+enum PhoneTab: Hashable {
+    case overview
+    case search
+    case bookmarks
+    case settings
+}
+#endif
+
 struct RootView: View {
     @Environment(WikiStore.self) private var store
     @Environment(\.modelContext) private var modelContext
@@ -26,6 +44,11 @@ struct RootView: View {
     @State private var showInstanceSheet = false
     @State private var restoreRecords: [BookmarkRecord]?
     @AppStorage("appearanceMode") private var appearance: AppearanceMode = .system
+    #if os(iOS)
+    @State private var phoneTab: PhoneTab = .overview
+    @State private var overviewPath: [Route] = []
+    @State private var searchPath: [Route] = []
+    #endif
     #if os(macOS)
     @State private var showPalette = false
     #endif
@@ -38,47 +61,14 @@ struct RootView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
-            SidebarView(selection: $selection, onChangeInstance: { showInstanceSheet = true })
-                .navigationSplitViewColumnWidth(min: 230, ideal: 280)
-        } detail: {
-            NavigationStack {
-                detail
-            }
-        }
-        .navigationSplitViewStyle(.balanced)
-        .preferredColorScheme(appearance.colorScheme)
-        #if os(macOS)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    showPalette = true
-                } label: {
-                    Label("Search Everything", systemImage: "magnifyingglass")
-                }
-                .keyboardShortcut("k", modifiers: [.command])
-                .help("Search every section and link (⌘K)")
-            }
-        }
-        .overlay {
-            if showPalette {
-                CommandPalette(
-                    onOpenSection: { slug in selection = .page(slug) },
-                    onOpenEntry: { result in openWikiURL(result.entry.url) },
-                    onDismiss: { showPalette = false }
-                )
-            }
-        }
-        #endif
-        .environment(\.openSection, OpenSectionAction { slug, group in
-            if let group {
-                store.requestJump(WikiJump(slug: slug, group: group))
-            }
-            selection = .page(slug)
-        })
-        .environment(\.openWikiURL, OpenWikiURLAction { url in
-            openWikiURL(url)
-        })
+        content
+            .preferredColorScheme(appearance.colorScheme)
+            .environment(\.openSection, OpenSectionAction { slug, group in
+                show(slug: slug, group: group)
+            })
+            .environment(\.openWikiURL, OpenWikiURLAction { url in
+                openWikiURL(url)
+            })
         .sheet(item: $browserSheet) { sheet in
             SafariSheet(url: sheet.url)
         }
@@ -117,14 +107,133 @@ struct RootView: View {
         }
     }
 
+    /// iPhone gets a tab bar; iPad and Mac keep the sidebar.
+    @ViewBuilder
+    private var content: some View {
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            phoneTabs
+        } else {
+            split
+        }
+        #else
+        split
+        #endif
+    }
+
+    private var split: some View {
+        NavigationSplitView {
+            SidebarView(selection: $selection, onChangeInstance: { showInstanceSheet = true })
+                .navigationSplitViewColumnWidth(min: 230, ideal: 280)
+        } detail: {
+            NavigationStack {
+                detail
+            }
+        }
+        .navigationSplitViewStyle(.balanced)
+        #if os(macOS)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    showPalette = true
+                } label: {
+                    Label("Search Everything", systemImage: "magnifyingglass")
+                }
+                .keyboardShortcut("k", modifiers: [.command])
+                .help("Search every section and link (⌘K)")
+            }
+        }
+        .overlay {
+            if showPalette {
+                CommandPalette(
+                    onOpenSection: { slug in show(slug: slug, group: nil) },
+                    onOpenEntry: { result in openWikiURL(result.entry.url) },
+                    onDismiss: { showPalette = false }
+                )
+            }
+        }
+        #endif
+    }
+
+    #if os(iOS)
+    private var phoneTabs: some View {
+        TabView(selection: $phoneTab) {
+            NavigationStack(path: $overviewPath) {
+                OverviewView(
+                    openSection: { show(slug: $0, group: nil) },
+                    openPosts: { overviewPath.append(.posts) },
+                    onChangeInstance: { showInstanceSheet = true }
+                )
+                .navigationDestination(for: Route.self) { destination($0) }
+            }
+            .tabItem {
+                Label("Overview", systemImage: "rectangle.grid.2x2")
+            }
+            .tag(PhoneTab.overview)
+
+            NavigationStack(path: $searchPath) {
+                SearchView()
+                    .navigationDestination(for: Route.self) { destination($0) }
+            }
+            .tabItem {
+                Label("Search", systemImage: "magnifyingglass")
+            }
+            .tag(PhoneTab.search)
+
+            NavigationStack {
+                BookmarksView()
+            }
+            .tabItem {
+                Label("Bookmarks", systemImage: "star.fill")
+            }
+            .tag(PhoneTab.bookmarks)
+
+            NavigationStack {
+                SettingsView()
+            }
+            .tabItem {
+                Label("Settings", systemImage: "gearshape")
+            }
+            .tag(PhoneTab.settings)
+        }
+    }
+
+    @ViewBuilder
+    private func destination(_ route: Route) -> some View {
+        switch route {
+        case .page(let slug):
+            PageView(slug: slug)
+        case .posts:
+            PostsView()
+        }
+    }
+    #endif
+
+    /// Opens a section in whichever shell is on screen: the detail column on iPad
+    /// and Mac, a pushed page on the iPhone tab that asked for it.
+    private func show(slug: String, group: String?) {
+        if let group {
+            store.requestJump(WikiJump(slug: slug, group: group))
+        }
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            if phoneTab == .search {
+                searchPath.append(.page(slug))
+            } else {
+                phoneTab = .overview
+                overviewPath.append(.page(slug))
+            }
+            return
+        }
+        #endif
+        selection = .page(slug)
+    }
+
     /// Cross-references to FMHY itself stay in the app, and anchors that point at
     /// a group scroll there instead of doing nothing.
     private func openWikiURL(_ url: URL) {
         if let target = WikiLinkRouter.target(for: url) {
-            if let group = target.group {
-                store.requestJump(WikiJump(slug: target.slug, group: group))
-            }
-            selection = .page(target.slug)
+            show(slug: target.slug, group: target.group)
             return
         }
         #if os(iOS)
@@ -160,7 +269,11 @@ struct RootView: View {
         case .settings:
             SettingsView()
         case .overview, .none:
-            OverviewView(selection: $selection, onChangeInstance: { showInstanceSheet = true })
+            OverviewView(
+                openSection: { selection = .page($0) },
+                openPosts: { selection = .posts },
+                onChangeInstance: { showInstanceSheet = true }
+            )
         }
     }
 }
