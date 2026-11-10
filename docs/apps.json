@@ -8,6 +8,22 @@
   "identifier": "com.jbugel.fmhy.altstore",
   "apps": [
     {
+      "name": "FMHY 1.7",
+      "bundleIdentifier": "iOS.jbugel.fmhy",
+      "developerName": "jbgy",
+      "subtitle": "FMHY Reader · Build 8",
+      "localizedDescription": "Added:\n- posts: read FMHY's monthly update posts in the app\n\nUnsigned IPA for iOS 17.0 and later.",
+      "iconURL": "https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/icon.png",
+      "tintColor": "#7C5CFF",
+      "version": "1.7",
+      "buildVersion": "8",
+      "versionDate": "2026-11-10T13:37:13Z",
+      "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.7/FMHY.ipa",
+      "size": 2648499,
+      "minOSVersion": "17.0",
+      "sha256": "f537ecd15e6ad404f753aa9484af774d5f079361926f1b4d869f16a49625689f"
+    },
+    {
       "name": "FMHY 1.6",
       "bundleIdentifier": "iOS.jbugel.fmhy",
       "developerName": "jbgy",
@@ -121,6 +137,14 @@
     }
   ],
   "news": [
+    {
+      "title": "FMHY 1.7",
+      "identifier": "1.7-8",
+      "caption": "posts: read FMHY's monthly update posts in the app",
+      "date": "2026-11-10T13:37:13Z",
+      "tintColor": "#7C5CFF",
+      "appID": "iOS.jbugel.fmhy"
+    },
     {
       "title": "FMHY 1.6",
       "identifier": "1.6-7",
