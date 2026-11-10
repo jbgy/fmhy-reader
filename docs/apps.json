@@ -8,79 +8,91 @@
   "identifier": "com.jbugel.fmhy.altstore",
   "apps": [
     {
-      "name": "FMHY",
+      "name": "FMHY 1.4",
       "bundleIdentifier": "iOS.jbugel.fmhy",
       "developerName": "jbgy",
-      "subtitle": "An unofficial reader for the FMHY wiki",
-      "localizedDescription": "Every FMHY section on your device: browse, search, bookmark and share links without waiting on a website. Section content updates silently from the wiki's GitHub repository, so new links show up without an App Store update.",
+      "subtitle": "FMHY Reader · Build 5",
+      "localizedDescription": "Added:\n- Feed: timestamp releases and mirror the legacy version keys\n\nFixed:\n- macOS: filter with an inline field on every screen\n- Feed: restore the 1.2 entry the failed release skipped\n- Feed: order releases by their real publish time\n- Launch: open the overview instead of the last section\n\nUnsigned IPA for iOS 17.0 and later.",
       "iconURL": "https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/icon.png",
       "tintColor": "#7C5CFF",
-      "category": "utilities",
-      "screenshots": [],
-      "versions": [
-        {
-          "version": "1.4",
-          "buildVersion": "5",
-          "date": "2026-11-10T12:23:37Z",
-          "localizedDescription": "Release v1.4. Unsigned IPA for iOS 17.0 and later.",
-          "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.4/FMHY.ipa",
-          "size": 2587695,
-          "minOSVersion": "17.0",
-          "sha256": "748688163a3b3c9223265caba40067d9edc431a4d0349df2f76f3904ac0789de"
-        },
-        {
-          "version": "1.3",
-          "buildVersion": "4",
-          "date": "2026-11-10T10:58:29Z",
-          "localizedDescription": "Release v1.3. Unsigned IPA for iOS 17.0 and later.",
-          "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.3/FMHY.ipa",
-          "size": 2587986,
-          "minOSVersion": "17.0",
-          "sha256": "61495b3eac07018dfaa271fffc4dd2345ab907dbec3df7b2e8b514fe29edd442"
-        },
-        {
-          "version": "1.2",
-          "buildVersion": "3",
-          "date": "2026-11-10T10:45:08Z",
-          "localizedDescription": "Release v1.2. Unsigned IPA for iOS 17.0 and later.",
-          "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.2/FMHY.ipa",
-          "size": 2587858,
-          "minOSVersion": "17.0",
-          "sha256": "af366beed4acdef9c5d3e3d5778a8c747a2e2b6c18e33ab5400fae0ef010e4ee"
-        },
-        {
-          "version": "1.1",
-          "buildVersion": "2",
-          "date": "2026-11-10T10:30:37Z",
-          "localizedDescription": "Release v1.1. Unsigned IPA for iOS 17.0 and later.",
-          "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.1/FMHY.ipa",
-          "size": 2587856,
-          "minOSVersion": "17.0",
-          "sha256": "b6acef7bd46afc4863658ae28e04a71a410e375012c62dd784d848ca83d2ee9d"
-        },
-        {
-          "version": "1.0",
-          "buildVersion": "1",
-          "date": "2026-11-10T09:54:03Z",
-          "localizedDescription": "Release v1.0.",
-          "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.0/FMHY.ipa",
-          "size": 2578807,
-          "minOSVersion": "27.0",
-          "sha256": "7526d09ebd551ab618ca241da7067cb2a9bbd41360425027bcbc026ae105c3ba"
-        }
-      ],
       "version": "1.4",
+      "buildVersion": "5",
       "versionDate": "2026-11-10T12:23:37Z",
-      "versionDescription": "Release v1.4.",
       "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.4/FMHY.ipa",
-      "size": 2587695
+      "size": 2587695,
+      "minOSVersion": "17.0",
+      "sha256": "748688163a3b3c9223265caba40067d9edc431a4d0349df2f76f3904ac0789de"
+    },
+    {
+      "name": "FMHY 1.3",
+      "bundleIdentifier": "iOS.jbugel.fmhy",
+      "developerName": "jbgy",
+      "subtitle": "FMHY Reader · Build 4",
+      "localizedDescription": "Added:\n- Feed: timestamp releases and mirror the legacy version keys\n\nFixed:\n- macOS: filter with an inline field on every screen\n\nUnsigned IPA for iOS 17.0 and later.",
+      "iconURL": "https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/icon.png",
+      "tintColor": "#7C5CFF",
+      "version": "1.3",
+      "buildVersion": "4",
+      "versionDate": "2026-11-10T10:58:29Z",
+      "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.3/FMHY.ipa",
+      "size": 2587986,
+      "minOSVersion": "17.0",
+      "sha256": "61495b3eac07018dfaa271fffc4dd2345ab907dbec3df7b2e8b514fe29edd442"
+    },
+    {
+      "name": "FMHY 1.2",
+      "bundleIdentifier": "iOS.jbugel.fmhy",
+      "developerName": "jbgy",
+      "subtitle": "FMHY Reader · Build 3",
+      "localizedDescription": "Added:\n- Feed: keep fifty versions in the source\n\nFixed:\n- macOS: keep the sidebar filter out of the window toolbar\n\nUnsigned IPA for iOS 17.0 and later.",
+      "iconURL": "https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/icon.png",
+      "tintColor": "#7C5CFF",
+      "version": "1.2",
+      "buildVersion": "3",
+      "versionDate": "2026-11-10T10:45:08Z",
+      "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.2/FMHY.ipa",
+      "size": 2587858,
+      "minOSVersion": "17.0",
+      "sha256": "af366beed4acdef9c5d3e3d5778a8c747a2e2b6c18e33ab5400fae0ef010e4ee"
+    },
+    {
+      "name": "FMHY 1.1",
+      "bundleIdentifier": "iOS.jbugel.fmhy",
+      "developerName": "jbgy",
+      "subtitle": "FMHY Reader · Build 2",
+      "localizedDescription": "Added:\n- Search: rank matches by where the query landed\n\nFixed:\n- Feed: serve the source from the canonical refs/heads URL\n\nDocs:\n- Fix the AltDirect link to the canonical feed URL\n\nUnsigned IPA for iOS 17.0 and later.",
+      "iconURL": "https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/icon.png",
+      "tintColor": "#7C5CFF",
+      "version": "1.1",
+      "buildVersion": "2",
+      "versionDate": "2026-11-10T10:30:37Z",
+      "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.1/FMHY.ipa",
+      "size": 2587856,
+      "minOSVersion": "17.0",
+      "sha256": "b6acef7bd46afc4863658ae28e04a71a410e375012c62dd784d848ca83d2ee9d"
+    },
+    {
+      "name": "FMHY 1.0",
+      "bundleIdentifier": "iOS.jbugel.fmhy",
+      "developerName": "jbgy",
+      "subtitle": "FMHY Reader · Build 1",
+      "localizedDescription": "Docs:\n- Name the project FMHY Reader and clarify it is unofficial\n- Point badges and feed URLs at the jbgy account\n\nUnsigned IPA for iOS 27.0 and later.",
+      "iconURL": "https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/icon.png",
+      "tintColor": "#7C5CFF",
+      "version": "1.0",
+      "buildVersion": "1",
+      "versionDate": "2026-11-10T09:54:03Z",
+      "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v1.0/FMHY.ipa",
+      "size": 2578807,
+      "minOSVersion": "27.0",
+      "sha256": "7526d09ebd551ab618ca241da7067cb2a9bbd41360425027bcbc026ae105c3ba"
     }
   ],
   "news": [
     {
       "title": "FMHY 1.4",
       "identifier": "1.4-5",
-      "caption": "Build 5 · iOS 17.0+ · unsigned IPA",
+      "caption": "Feed: timestamp releases and mirror the legacy version keys (+4 more)",
       "date": "2026-11-10T12:23:37Z",
       "tintColor": "#7C5CFF",
       "appID": "iOS.jbugel.fmhy"
@@ -88,24 +100,32 @@
     {
       "title": "FMHY 1.3",
       "identifier": "1.3-4",
-      "caption": "Build 4 · iOS 17.0+ · unsigned IPA",
-      "date": "2026-11-10T11:00:07Z",
-      "tintColor": "#7C5CFF",
-      "appID": "iOS.jbugel.fmhy"
-    },
-    {
-      "title": "FMHY 1.1",
-      "identifier": "1.1-2",
-      "caption": "Build 2 · iOS 17.0+ · unsigned IPA",
-      "date": "2026-11-10",
+      "caption": "Feed: timestamp releases and mirror the legacy version keys (+1 more)",
+      "date": "2026-11-10T10:58:29Z",
       "tintColor": "#7C5CFF",
       "appID": "iOS.jbugel.fmhy"
     },
     {
       "title": "FMHY 1.2",
       "identifier": "1.2-3",
-      "caption": "Build 3 · iOS 17.0+ · unsigned IPA",
-      "date": "2026-11-10",
+      "caption": "Feed: keep fifty versions in the source (+1 more)",
+      "date": "2026-11-10T10:45:08Z",
+      "tintColor": "#7C5CFF",
+      "appID": "iOS.jbugel.fmhy"
+    },
+    {
+      "title": "FMHY 1.1",
+      "identifier": "1.1-2",
+      "caption": "Search: rank matches by where the query landed (+2 more)",
+      "date": "2026-11-10T10:30:37Z",
+      "tintColor": "#7C5CFF",
+      "appID": "iOS.jbugel.fmhy"
+    },
+    {
+      "title": "FMHY 1.0",
+      "identifier": "1.0-1",
+      "caption": "Name the project FMHY Reader and clarify it is unofficial (+1 more)",
+      "date": "2026-11-10T09:54:03Z",
       "tintColor": "#7C5CFF",
       "appID": "iOS.jbugel.fmhy"
     }
