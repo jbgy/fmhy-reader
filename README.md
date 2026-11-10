@@ -199,5 +199,7 @@ scripts/       IPA and macOS packaging, AltStore feed update, icon generator
 
 ## Credits
 
-Wiki content belongs to the FMHY contributors; this is just a reader for it. Not affiliated with
-or endorsed by the FMHY team.
+Wiki content belongs to the FMHY contributors; this is just a reader for it. Not affiliated with or endorsed by the FMHY team.
+
+Inspired by [fmhy-app](https://github.com/eli32-vlc/fmhy-app), which served as the initial inspiration and reference for this project.
+FMHY Reader is an independent implementation with its own SwiftUI codebase, features and architecture.
