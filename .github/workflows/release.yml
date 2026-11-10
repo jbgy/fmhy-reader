@@ -1,0 +1,60 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Build and publish IPA
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Select newest Xcode
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          xcodebuild -version
+
+      - name: Build unsigned IPA
+        env:
+          VERSION_OVERRIDE: ${{ github.ref_name }}
+          BUILD_NUMBER_OVERRIDE: ${{ github.run_number }}
+        run: |
+          ./scripts/build-ipa.sh
+          cp build/FMHY-*-unsigned.ipa build/FMHY.ipa
+
+      - name: Update AltStore source feed
+        run: |
+          python3 scripts/make-altstore-source.py \
+            --ipa build/FMHY.ipa \
+            --repo "${{ github.repository }}" \
+            --tag "${{ github.ref_name }}"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            build/FMHY.ipa \
+            docs/apps.json \
+            --title "FMHY ${{ github.ref_name }}" \
+            --notes "Unsigned IPA for AltStore, SideStore, Feather, ESign and Sideloadly. Add the source once and update from there: https://raw.githubusercontent.com/${{ github.repository }}/main/docs/apps.json"
+
+      - name: Commit updated feed
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git checkout main
+          git add docs/apps.json
+          if git diff --cached --quiet; then
+            echo "feed unchanged"
+          else
+            git commit -m "chore(release): publish ${{ github.ref_name }}"
+            git push origin main
+          fi

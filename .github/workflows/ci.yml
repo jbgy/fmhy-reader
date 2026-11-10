@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: iOS
+            destination: generic/platform=iOS Simulator
+          - name: macOS
+            destination: platform=macOS
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select newest Xcode
+        run: |
+          sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)"
+          xcodebuild -version
+
+      - name: Build
+        run: |
+          xcodebuild \
+            -project fmhy.xcodeproj \
+            -scheme fmhy \
+            -configuration Debug \
+            -destination '${{ matrix.destination }}' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+  validate:
+    name: Validate scripts and source feed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check shell scripts parse
+        run: |
+          for script in scripts/*.sh; do
+            bash -n "$script"
+            echo "ok $script"
+          done
+
+      - name: Check Python helper compiles
+        run: python3 -c "compile(open('scripts/make-altstore-source.py').read(), 'make-altstore-source.py', 'exec')"
+
+      - name: Check AltStore feed is valid JSON
+        run: python3 -m json.tool docs/apps.json > /dev/null
