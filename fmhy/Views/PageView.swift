@@ -12,9 +12,12 @@ struct PageView: View {
     let slug: String
 
     @Environment(WikiStore.self) private var store
+    @Environment(\.openWikiURL) private var openURL
     @State private var query = ""
     @State private var jumpTarget: String?
     @State private var showContents = false
+    /// Id of the entry the arrow keys are on, so ↵ has something to open.
+    @State private var keyEntry: String?
 
     private var definition: WikiPageDefinition? { WikiCatalog.bySlug[slug] }
     private var page: WikiPage? { store.pages[slug] }
@@ -55,6 +58,9 @@ struct PageView: View {
         .task {
             await store.loadIfNeeded(slug: slug)
             store.recordVisit(slug: slug)
+            // A section the wiki rewrites daily is worth re-checking on open;
+            // one that changes monthly is not.
+            await store.refreshIfStale(slug: slug)
         }
         .refreshable { await store.refreshPage(slug: slug) }
         .toolbar {
@@ -99,6 +105,12 @@ struct PageView: View {
                         .foregroundStyle(.secondary)
                 }
 
+                if let churn = store.churnDescription(for: slug) {
+                    Label(churn, systemImage: "clock.arrow.circlepath")
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                }
+
                 ForEach(categories) { category in
                     let groups = category.groups.filter(\.hasContent)
                     ForEach(groups) { group in
@@ -120,6 +132,10 @@ struct PageView: View {
                                         categoryTitle: category.title,
                                         groupTitle: group.title
                                     )
+                                )
+                                .id(entry.id)
+                                .listRowBackground(
+                                    keyEntry == entry.id ? Color.accentColor.opacity(0.14) : nil
                                 )
                             }
                         } header: {
@@ -155,7 +171,48 @@ struct PageView: View {
             .onChange(of: store.pendingJump) { _, _ in
                 consumePendingJump(proxy, page: page)
             }
+            // Keyboard walking: the arrows move a highlight through the links,
+            // ↵ opens the highlighted one.
+            .onKeyPress(.downArrow) {
+                moveKeyEntry(1, page: page, proxy: proxy)
+                return .handled
+            }
+            .onKeyPress(.upArrow) {
+                moveKeyEntry(-1, page: page, proxy: proxy)
+                return .handled
+            }
+            .onKeyPress(.return) {
+                openKeyEntry(page)
+                return .handled
+            }
         }
+    }
+
+    // MARK: - Keyboard
+
+    /// Every link the list is currently showing, in display order.
+    private func navigableEntries(_ page: WikiPage) -> [WikiEntry] {
+        filtered(page).flatMap { category in
+            category.groups.filter(\.hasContent).flatMap(\.entries)
+        }
+    }
+
+    private func moveKeyEntry(_ delta: Int, page: WikiPage, proxy: ScrollViewProxy) {
+        let entries = navigableEntries(page)
+        guard !entries.isEmpty else { return }
+        let current = keyEntry.flatMap { id in entries.firstIndex { $0.id == id } } ?? -1
+        let next = (current + delta + entries.count) % entries.count
+        keyEntry = entries[next].id
+        withAnimation(.easeInOut(duration: 0.2)) {
+            proxy.scrollTo(entries[next].id, anchor: .center)
+        }
+    }
+
+    private func openKeyEntry(_ page: WikiPage) {
+        guard let keyEntry,
+              let entry = navigableEntries(page).first(where: { $0.id == keyEntry })
+        else { return }
+        openURL(entry.url)
     }
 
     /// Scrolls to the group a cross-reference link pointed at.

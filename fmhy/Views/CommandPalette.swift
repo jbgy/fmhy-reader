@@ -2,10 +2,10 @@
 //  CommandPalette.swift
 //  fmhy
 //
-//  ⌘K on the Mac: one field for every section and every link in the wiki.
+//  ⌘K anywhere a keyboard is attached, Mac or iPad: one field for every
+//  section and every link in the wiki.
 //
 
-#if os(macOS)
 import SwiftUI
 
 struct CommandPalette: View {
@@ -60,7 +60,7 @@ struct CommandPalette: View {
             Divider()
             footer
         }
-        .frame(width: 620)
+        .frame(maxWidth: 620)
         .background(.regularMaterial, in: .rect(cornerRadius: 14))
         .overlay {
             RoundedRectangle(cornerRadius: 14)
@@ -269,4 +269,3 @@ struct CommandPalette: View {
         onDismiss()
     }
 }
-#endif

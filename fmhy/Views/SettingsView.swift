@@ -52,6 +52,7 @@ struct SettingsView: View {
             updatesSection
             domainSection
             bookmarkSection
+            keyboardSection
             aboutSection
         }
         .formStyle(.grouped)
@@ -99,6 +100,11 @@ struct SettingsView: View {
         Section {
             Toggle("Check for wiki updates automatically", isOn: $autoRefresh)
 
+            LabeledContent("Wiki tempo") {
+                Text(store.tempoLine)
+                    .foregroundStyle(.secondary)
+            }
+
             LabeledContent("Status") {
                 Text(store.statusLine)
                     .foregroundStyle(.secondary)
@@ -129,7 +135,8 @@ struct SettingsView: View {
             Text(
                 "Updates are free of API keys: the app reads FMHY's commit feed and downloads only "
                 + "the sections that changed. Turning this off keeps the saved copy and leaves the "
-                + "\"Check Now\" button working."
+                + "\"Check Now\" button working. Sections the wiki rewrites often are re-checked "
+                + "when you open them; quiet ones wait days."
             )
         }
     }
@@ -182,6 +189,33 @@ struct SettingsView: View {
                         + "reinstall does not lose the list. Visible in the Files app on iPhone."
                     : "Bookmarks live only in the app's database. A backup copy can refill an empty list later."
             )
+        }
+    }
+
+    private var keyboardSection: some View {
+        Section("Keyboard") {
+            shortcutRow("Search every section and link", "⌘K")
+            shortcutRow("Move through the sidebar", "↑ ↓")
+            shortcutRow("Move through a section's links", "↑ ↓")
+            shortcutRow("Open the highlighted link", "↵")
+            #if os(macOS)
+            shortcutRow("Check for wiki updates", "⇧⌘R")
+            shortcutRow("Settings", "⌘,")
+            #endif
+
+            Text("⌘K and the arrow keys need a hardware keyboard on iPad.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func shortcutRow(_ title: String, _ keys: String) -> some View {
+        HStack(spacing: 8) {
+            Text(title)
+            Spacer(minLength: 8)
+            Text(keys)
+                .font(.callout.monospaced())
+                .foregroundStyle(.secondary)
         }
     }
 

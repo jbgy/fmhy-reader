@@ -44,11 +44,13 @@ repository.
   an opt-in backup copy that can refill an empty list (visible in the Files app on iOS).
 - **Cross-links** to other wiki sections and to Reddit open in the app, including anchors.
 - **Tappable note links** in callouts, so a recommendation's own site is one tap away.
-- **Resume:** reopening the app returns to the last section, with recently viewed sections listed.
+- **Resume:** the overview lists recently viewed sections, so reading picks up where you left off.
 - **Settings** in one place: appearance, automatic update checks, wiki domain and mirror fallback,
-  the overview tip, and the bookmark backup — `⌘,` on the Mac.
-- **⌘K command palette** on the Mac: one field that jumps to a section or opens any link in the
-  wiki, with recent sections listed before you type.
+  the overview tip, the bookmark backup and the keyboard shortcut map — `⌘,` on the Mac.
+- **⌘K command palette** on the Mac and iPad: one field that jumps to a section or opens any link
+  in the wiki, with recent sections listed before you type.
+- **Keyboard navigation** on Mac, and on iPad with a hardware keyboard: arrows move through the
+  sidebar and through a section's links, ↵ opens the highlighted one.
 - iPhone, iPad and Mac from one SwiftUI codebase, with light, dark and tinted icons.
 
 ## Requirements

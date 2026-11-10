@@ -35,6 +35,10 @@ final class WikiStore {
 
     /// Sections touched by the last update, with how many links each gained.
     private(set) var updateDigest: [String: Int] = [:]
+    /// Commits per section over the last month, as a weekly rate.
+    private(set) var sectionChurn: [String: Double] = [:]
+    /// When each section's cached copy was last fetched from the wiki.
+    private var pageFetched: [String: Date] = [:]
     /// Most recently opened sections, newest first.
     private(set) var recentSlugs: [String] = []
 
@@ -121,13 +125,19 @@ final class WikiStore {
         var cacheVersion: Int?
         var digest: [String: Int]?
         var digestDate: Date?
+        var churn: [String: Double]?
+        var churnDate: Date?
+        var pageFetched: [String: Date]?
     }
 
     private var meta = Meta()
     private let session: URLSession
     private let cacheDirectory: URL
-    /// How long a local copy is considered fresh before a silent background check.
-    private let refreshInterval: TimeInterval = 6 * 60 * 60
+    /// How long a local copy is considered fresh before a silent background
+    /// check. A busy wiki is checked more often; a quiet one backs off.
+    private var refreshInterval: TimeInterval {
+        WikiCadence.checkInterval(totalChurnPerWeek: sectionChurn.values.reduce(0, +))
+    }
 
     private static let rawBase = "https://raw.githubusercontent.com/fmhy/edit/main/docs/"
     private static let apiRepo = "https://api.github.com/repos/fmhy/edit"
@@ -165,6 +175,8 @@ final class WikiStore {
         lastUpdated = meta.lastUpdated
         lastCommitDate = meta.commitDate
         updateDigest = meta.digest ?? [:]
+        sectionChurn = meta.churn ?? [:]
+        pageFetched = meta.pageFetched ?? [:]
 
         guard !needsInstanceSetup else { return }
 
@@ -320,6 +332,7 @@ final class WikiStore {
                         if added > 0 { digest[slug] = added }
                         pages[slug] = page
                         save(page)
+                        pageFetched[slug] = .now
                         fetchedAny = true
                     }
                 }
@@ -347,16 +360,18 @@ final class WikiStore {
             connection = .online
             rebuildSearchIndex()
             saveMeta()
+            await refreshChurnIfStale()
         } catch {
             connection = .offline
             statusDetail = "Using the saved copy"
         }
     }
 
-    /// Pull-to-refresh for a single section.
-    func refreshPage(slug: String) async {
+    /// Pull-to-refresh for a single section. `silent` leaves the loading state
+    /// alone, so a stale-but-usable page stays on screen while it is replaced.
+    func refreshPage(slug: String, silent: Bool = false) async {
         guard !loadingSlugs.contains(slug) else { return }
-        loadingSlugs.insert(slug)
+        if !silent { loadingSlugs.insert(slug) }
         defer { loadingSlugs.remove(slug) }
 
         do {
@@ -367,6 +382,7 @@ final class WikiStore {
             connection = .online
             meta.lastUpdated = .now
             meta.lastChecked = .now
+            pageFetched[slug] = .now
             lastUpdated = meta.lastUpdated
             rebuildSearchIndex()
             saveMeta()
@@ -374,6 +390,65 @@ final class WikiStore {
             connection = pages[slug] == nil ? .offline : .offline
             failedSlugs.insert(slug)
         }
+    }
+
+    /// Re-checks a section on open when its copy is older than its own churn
+    /// justifies, so hot sections stay fresh without polling quiet ones.
+    func refreshIfStale(slug: String) async {
+        guard pages[slug] != nil, connection != .offline else { return }
+        guard UserDefaults.standard.object(forKey: Self.autoRefreshKey) as? Bool ?? true else { return }
+        let fetched = pageFetched[slug] ?? meta.lastChecked ?? .distantPast
+        let interval = WikiCadence.sectionRefreshInterval(
+            forChurnPerWeek: sectionChurn[slug] ?? 0
+        )
+        guard Date().timeIntervalSince(fetched) > interval else { return }
+        await refreshPage(slug: slug, silent: true)
+    }
+
+    /// Commit counts per section over the last month, cached for a day. GitHub
+    /// allows 60 unauthenticated requests an hour and this needs one per section,
+    /// so it runs rarely and quietly.
+    func refreshChurnIfStale(maxAge: TimeInterval = 24 * 60 * 60) async {
+        if let stamp = meta.churnDate, Date().timeIntervalSince(stamp) < maxAge { return }
+
+        let since = ISO8601DateFormatter().string(
+            from: Calendar.current.date(byAdding: .day, value: -30, to: .now) ?? .now
+        )
+        var measured: [String: Double] = [:]
+
+        for slug in catalog.map(\.slug) {
+            guard let count = await commitCount(slug: slug, since: since) else { continue }
+            measured[slug] = Double(count) * 7 / 30
+        }
+
+        guard !measured.isEmpty else { return }
+        sectionChurn = measured
+        meta.churnDate = .now
+        saveMeta()
+    }
+
+    private func commitCount(slug: String, since: String) async -> Int? {
+        guard var components = URLComponents(string: "\(Self.apiRepo)/commits") else { return nil }
+        components.queryItems = [
+            URLQueryItem(name: "path", value: "docs/\(slug).md"),
+            URLQueryItem(name: "since", value: since),
+            URLQueryItem(name: "per_page", value: "100"),
+        ]
+        guard let url = components.url,
+              let data = try? await fetch(url, accept: "application/vnd.github+json"),
+              let rows = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+        else { return nil }
+        return rows.count
+    }
+
+    /// e.g. "changes ~3× a week", once the rate is known.
+    func churnDescription(for slug: String) -> String? {
+        guard let rate = sectionChurn[slug] else { return nil }
+        return WikiCadence.description(forChurnPerWeek: rate)
+    }
+
+    var tempoLine: String {
+        WikiCadence.tempoLine(totalChurnPerWeek: sectionChurn.values.reduce(0, +))
     }
 
     /// Ensures a section is available, downloading it on first use if needed.
@@ -422,6 +497,8 @@ final class WikiStore {
     }
 
     private func saveMeta() {
+        meta.churn = sectionChurn.isEmpty ? nil : sectionChurn
+        meta.pageFetched = pageFetched.isEmpty ? nil : pageFetched
         guard let data = try? JSONEncoder().encode(meta) else { return }
         try? data.write(to: cacheDirectory.appendingPathComponent("meta.json"), options: .atomic)
     }
@@ -465,6 +542,8 @@ final class WikiStore {
         for (slug, page) in imported where pages[slug] == nil {
             pages[slug] = page
             save(page)
+            // The snapshot is as old as the commit it was built from.
+            pageFetched[slug] = meta.commitDate ?? .now
         }
         if !imported.isEmpty, meta.lastUpdated == nil {
             let seed = Self.seedManifest()

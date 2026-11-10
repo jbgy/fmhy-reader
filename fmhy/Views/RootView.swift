@@ -49,9 +49,7 @@ struct RootView: View {
     @State private var overviewPath: [Route] = []
     @State private var searchPath: [Route] = []
     #endif
-    #if os(macOS)
     @State private var showPalette = false
-    #endif
 
     private var instanceSheetPresented: Binding<Bool> {
         Binding(
@@ -131,7 +129,6 @@ struct RootView: View {
             }
         }
         .navigationSplitViewStyle(.balanced)
-        #if os(macOS)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button {
@@ -152,7 +149,6 @@ struct RootView: View {
                 )
             }
         }
-        #endif
     }
 
     #if os(iOS)
@@ -297,6 +293,23 @@ struct SidebarView: View {
         return store.catalog.filter { $0.title.localizedCaseInsensitiveContains(query) }
     }
 
+    /// Everything the list shows, in order, so the arrow keys can walk it.
+    private var keyboardOrder: [SidebarItem] {
+        var items: [SidebarItem] = filteredPages.map { .page($0.slug) }
+        items.append(contentsOf: [.overview, .search, .bookmarks])
+        #if !os(macOS)
+        items.append(.settings)
+        #endif
+        return items
+    }
+
+    private func moveSelection(_ delta: Int) {
+        let items = keyboardOrder
+        guard !items.isEmpty else { return }
+        let current = items.firstIndex(of: selection ?? .overview) ?? 0
+        selection = items[(current + delta + items.count) % items.count]
+    }
+
     var body: some View {
         List(selection: $selection) {
             Section("Wiki") {
@@ -339,6 +352,7 @@ struct SidebarView: View {
         }
         .listStyle(.sidebar)
         .navigationTitle("FMHY")
+        .modifier(SidebarKeyboardNavigation(move: moveSelection))
         #if os(iOS)
         .searchable(
             text: $filter,
@@ -352,6 +366,23 @@ struct SidebarView: View {
         .safeAreaInset(edge: .top, spacing: 0) {
             InlineSearchField(prompt: "Filter sections", text: $filter)
         }
+        #endif
+    }
+}
+
+/// Arrow-key movement for the sidebar. macOS lists already do this natively, so
+/// it is only attached where a hardware keyboard meets a list that does not.
+private struct SidebarKeyboardNavigation: ViewModifier {
+    let move: (Int) -> Void
+
+    func body(content: Content) -> some View {
+        #if os(iOS)
+        content
+            .focusable()
+            .onKeyPress(.downArrow) { move(1); return .handled }
+            .onKeyPress(.upArrow) { move(-1); return .handled }
+        #else
+        content
         #endif
     }
 }
