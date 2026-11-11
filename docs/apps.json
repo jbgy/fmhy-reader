@@ -156,74 +156,83 @@
     {
       "title": "FMHY 2.0",
       "identifier": "2.0-9",
-      "caption": "settings: add a settings screen for appearance, updates and domains (+9 more)",
+      "caption": "Settings: add a settings screen for appearance, updates and domains; Overview: stop the header repeating the title and overflowing; Revert \"docs: show the app in the README and on the landing page\".",
       "date": "2026-11-10T15:54:56Z",
       "tintColor": "#7C5CFF",
-      "appID": "iOS.jbugel.fmhy"
+      "appID": "iOS.jbugel.fmhy",
+      "notify": false
     },
     {
       "title": "FMHY 1.7",
       "identifier": "1.7-8",
-      "caption": "posts: read FMHY's monthly update posts in the app",
+      "caption": "Posts: read FMHY's monthly update posts in the app.",
       "date": "2026-11-10T13:37:13Z",
       "tintColor": "#7C5CFF",
-      "appID": "iOS.jbugel.fmhy"
+      "appID": "iOS.jbugel.fmhy",
+      "notify": false
     },
     {
       "title": "FMHY 1.6",
       "identifier": "1.6-7",
-      "caption": "overview: link the monthly release posts by the link count (+1 more)",
+      "caption": "Overview: link the monthly release posts by the link count; Bookmarks: make the backup menu entry actually turn the copy on.",
       "date": "2026-11-10T13:27:17Z",
       "tintColor": "#7C5CFF",
-      "appID": "iOS.jbugel.fmhy"
+      "appID": "iOS.jbugel.fmhy",
+      "notify": false
     },
     {
       "title": "FMHY 1.5",
       "identifier": "1.5-6",
-      "caption": "Feed: publish one source entry per release with notes (+2 more)",
+      "caption": "Feed: publish one source entry per release with notes.",
       "date": "2026-11-10T13:11:29Z",
       "tintColor": "#7C5CFF",
-      "appID": "iOS.jbugel.fmhy"
+      "appID": "iOS.jbugel.fmhy",
+      "notify": false
     },
     {
       "title": "FMHY 1.4",
       "identifier": "1.4-5",
-      "caption": "Feed: timestamp releases and mirror the legacy version keys (+4 more)",
+      "caption": "Feed: timestamp releases and mirror the legacy version keys; MacOS: filter with an inline field on every screen.",
       "date": "2026-11-10T12:23:37Z",
       "tintColor": "#7C5CFF",
-      "appID": "iOS.jbugel.fmhy"
+      "appID": "iOS.jbugel.fmhy",
+      "notify": false
     },
     {
       "title": "FMHY 1.3",
       "identifier": "1.3-4",
-      "caption": "Feed: timestamp releases and mirror the legacy version keys (+1 more)",
+      "caption": "Feed: timestamp releases and mirror the legacy version keys; MacOS: filter with an inline field on every screen.",
       "date": "2026-11-10T10:58:29Z",
       "tintColor": "#7C5CFF",
-      "appID": "iOS.jbugel.fmhy"
+      "appID": "iOS.jbugel.fmhy",
+      "notify": false
     },
     {
       "title": "FMHY 1.2",
       "identifier": "1.2-3",
-      "caption": "Feed: keep fifty versions in the source (+1 more)",
+      "caption": "Feed: keep fifty versions in the source; MacOS: keep the sidebar filter out of the window toolbar.",
       "date": "2026-11-10T10:45:08Z",
       "tintColor": "#7C5CFF",
-      "appID": "iOS.jbugel.fmhy"
+      "appID": "iOS.jbugel.fmhy",
+      "notify": false
     },
     {
       "title": "FMHY 1.1",
       "identifier": "1.1-2",
-      "caption": "Search: rank matches by where the query landed (+2 more)",
+      "caption": "Search: rank matches by where the query landed; Feed: serve the source from the canonical refs/heads URL; Fix the AltDirect link to the canonical feed URL.",
       "date": "2026-11-10T10:30:37Z",
       "tintColor": "#7C5CFF",
-      "appID": "iOS.jbugel.fmhy"
+      "appID": "iOS.jbugel.fmhy",
+      "notify": false
     },
     {
       "title": "FMHY 1.0",
       "identifier": "1.0-1",
-      "caption": "Name the project FMHY Reader and clarify it is unofficial (+1 more)",
+      "caption": "Name the project FMHY Reader and clarify it is unofficial.",
       "date": "2026-11-10T09:54:03Z",
       "tintColor": "#7C5CFF",
-      "appID": "iOS.jbugel.fmhy"
+      "appID": "iOS.jbugel.fmhy",
+      "notify": false
     }
   ]
 }

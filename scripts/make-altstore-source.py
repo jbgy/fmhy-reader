@@ -14,6 +14,9 @@ Usage:
   # convert a feed that still uses the versions[] layout
   python3 scripts/make-altstore-source.py --migrate --repo owner/name
 
+  # rebuild the news captions from the notes already stored in apps[]
+  python3 scripts/make-altstore-source.py --rewrite-news --repo owner/name
+
 The download URL points at the release asset named FMHY.ipa, which is what
 .github/workflows/release.yml uploads.
 """
@@ -35,6 +38,8 @@ RELEASE_ASSET = "FMHY.ipa"
 MAX_ENTRIES = 50
 MAX_NEWS = 10
 DISPLAY_NAME = "FMHY Reader"
+# The AltStore docs ask for about a sentence; this keeps a long release short.
+MAX_CAPTION = 200
 DEFAULT_TINT = "#7C5CFF"
 
 
@@ -148,21 +153,101 @@ def entries_from_feed(feed: dict, repo: str) -> list[dict]:
     return entries[:MAX_ENTRIES]
 
 
-def news_entry(feed: dict, app: dict, version: str, build: str, date: str, notes: str) -> dict:
-    bullets = [line.lstrip("- ").strip() for line in notes.splitlines() if line.startswith("- ")]
-    caption = bullets[0] if bullets else f"Build {build}"
-    if len(bullets) > 1:
-        caption = f"{caption} (+{len(bullets) - 1} more)"
-    if len(caption) > 120:
-        caption = caption[:117] + "…"
-    return {
+def note_sections(notes: str) -> list[tuple[str, list[str]]]:
+    """Release notes as (heading, bullets), the shape release-notes.py writes."""
+    sections: list[tuple[str, list[str]]] = []
+    for line in notes.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith("- "):
+            bullet = line[2:].strip()
+            if not bullet:
+                continue
+            if not sections:
+                sections.append(("", []))
+            sections[-1][1].append(bullet)
+        elif not line.endswith("."):
+            sections.append((line.rstrip(":"), []))
+    return sections
+
+
+def changelog_caption(notes: str) -> str:
+    """A news caption that reads like a changelog entry.
+
+    AltStore wants about one sentence, so the first item from each kind of
+    change is enough: one addition, one fix, one change. The old caption glued
+    the first commit subject to "(+9 more)", which told a reader nothing.
+    """
+    picked: list[str] = []
+    for _, bullets in note_sections(notes):
+        if not bullets:
+            continue
+        picked.append(bullets[0].rstrip("."))
+        if len(picked) == 3:
+            break
+
+    if not picked:
+        return ""
+
+    caption = "; ".join(
+        bullet[0].upper() + bullet[1:] if bullet else bullet for bullet in picked
+    )
+    if len(caption) > MAX_CAPTION:
+        return caption[: MAX_CAPTION - 1].rstrip() + "…"
+    return caption.rstrip(".…") + "."
+
+
+def news_entry(
+    app: dict,
+    version: str,
+    build: str,
+    date: str,
+    notes: str,
+    repo: str,
+    tag: str | None,
+) -> dict:
+    caption = changelog_caption(notes) or f"Version {version} of {DISPLAY_NAME}."
+    entry = {
         "title": f"FMHY {version}",
         "identifier": f"{version}-{build}",
         "caption": caption,
         "date": date,
         "tintColor": app.get("tintColor", DEFAULT_TINT),
+        # Only a hand-written announcement should push a notification.
+        "notify": False,
         "appID": app.get("bundleIdentifier"),
     }
+    if tag:
+        entry["url"] = f"https://github.com/{repo}/releases/tag/{tag}"
+    return entry
+
+
+def notes_from_description(description: str) -> str:
+    """The release notes an app entry already carries above its install line."""
+    lines = [line for line in description.splitlines() if "Unsigned IPA" not in line]
+    return "\n".join(lines).strip()
+
+
+def rewrite_news(feed: dict) -> int:
+    """Rebuild every caption from the notes in apps[], so older releases in
+    the list read as changelogs too."""
+    notes_by_title = {
+        f"FMHY {app['version']}": notes_from_description(app.get("localizedDescription", ""))
+        for app in feed.get("apps", [])
+    }
+
+    rewritten = 0
+    for item in feed.get("news", []):
+        notes = notes_by_title.get(item.get("title", ""))
+        if not notes:
+            continue
+        caption = changelog_caption(notes)
+        if caption and item.get("caption") != caption:
+            item["caption"] = caption
+            item.setdefault("notify", False)
+            rewritten += 1
+    return rewritten
 
 
 def main() -> int:
@@ -174,10 +259,21 @@ def main() -> int:
     parser.add_argument("--notes-file", type=Path, help="plain-text release notes for this build")
     parser.add_argument("--date", default=now_iso(), help="ISO 8601 release timestamp")
     parser.add_argument("--migrate", action="store_true", help="rewrite the feed layout without adding a build")
+    parser.add_argument(
+        "--rewrite-news",
+        action="store_true",
+        help="rebuild the news captions from the notes already in apps[]",
+    )
     args = parser.parse_args()
 
     feed_path = args.feed if args.feed.is_absolute() else REPO_ROOT / args.feed
     feed = json.loads(feed_path.read_text())
+
+    if args.rewrite_news:
+        rewritten = rewrite_news(feed)
+        feed_path.write_text(json.dumps(feed, indent=2, ensure_ascii=False) + "\n")
+        print(f"==> {feed_path.name}: rewrote {rewritten} news caption(s) from the release notes")
+        return 0
 
     raw_base = f"https://raw.githubusercontent.com/{args.repo}/refs/heads/main/docs"
     feed["sourceURL"] = f"{raw_base}/apps.json"
@@ -229,7 +325,7 @@ def main() -> int:
     ][: MAX_ENTRIES - 1]
 
     previous_news = [n for n in feed.get("news", []) if n.get("title") != f"FMHY {version}"]
-    news = news_entry(feed, entry, version, build, normalise_date(args.date), notes)
+    news = news_entry(entry, version, build, normalise_date(args.date), notes, args.repo, args.tag)
     feed["news"] = ([news] + previous_news)[:MAX_NEWS]
 
     feed_path.write_text(json.dumps(feed, indent=2, ensure_ascii=False) + "\n")

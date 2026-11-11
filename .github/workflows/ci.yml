@@ -99,5 +99,15 @@ jobs:
           assert dates == sorted(dates, reverse=True), "feed is not newest-first"
           versions = [app["version"] for app in apps]
           assert len(set(versions)) == len(versions), f"duplicate versions: {versions}"
-          print(f"feed ok: {len(apps)} versions", versions)
+
+          news = feed.get("news", [])
+          for item in news:
+              missing = {"title", "identifier", "caption", "date"} - item.keys()
+              assert not missing, f"news item {item.get('title')} is missing {sorted(missing)}"
+              assert "(+" not in item["caption"], \
+                  f"news item {item.get('title')} still carries a commit-subject caption"
+          identifiers = [item["identifier"] for item in news]
+          assert len(set(identifiers)) == len(identifiers), f"duplicate news identifiers: {identifiers}"
+
+          print(f"feed ok: {len(apps)} versions, {len(news)} news items", versions)
           PY
