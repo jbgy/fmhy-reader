@@ -198,6 +198,11 @@ def changelog_caption(notes: str) -> str:
     return caption.rstrip(".…") + "."
 
 
+def release_url(repo: str, version: str, tag: str | None = None) -> str:
+    """The page holding the whole changelog for a build."""
+    return f"https://github.com/{repo}/releases/tag/{tag or 'v' + version}"
+
+
 def news_entry(
     app: dict,
     version: str,
@@ -217,9 +222,9 @@ def news_entry(
         # Only a hand-written announcement should push a notification.
         "notify": False,
         "appID": app.get("bundleIdentifier"),
+        # A caption is one sentence, so the tap opens the rest of the notes.
+        "url": release_url(repo, version, tag),
     }
-    if tag:
-        entry["url"] = f"https://github.com/{repo}/releases/tag/{tag}"
     return entry
 
 
@@ -229,23 +234,32 @@ def notes_from_description(description: str) -> str:
     return "\n".join(lines).strip()
 
 
-def rewrite_news(feed: dict) -> int:
+def rewrite_news(feed: dict, repo: str) -> int:
     """Rebuild every caption from the notes in apps[], so older releases in
-    the list read as changelogs too."""
-    notes_by_title = {
-        f"FMHY {app['version']}": notes_from_description(app.get("localizedDescription", ""))
-        for app in feed.get("apps", [])
-    }
+    the list read as changelogs with a link to the rest."""
+    apps = {f"FMHY {app['version']}": app for app in feed.get("apps", [])}
 
     rewritten = 0
     for item in feed.get("news", []):
-        notes = notes_by_title.get(item.get("title", ""))
-        if not notes:
+        app = apps.get(item.get("title", ""))
+        if not app:
             continue
-        caption = changelog_caption(notes)
+
+        version = str(app["version"])
+        caption = changelog_caption(notes_from_description(app.get("localizedDescription", "")))
+        url = release_url(repo, version)
+        changed = False
+
         if caption and item.get("caption") != caption:
             item["caption"] = caption
-            item.setdefault("notify", False)
+            changed = True
+        if item.get("url") != url:
+            item["url"] = url
+            changed = True
+        item.setdefault("notify", False)
+        item.setdefault("appID", app.get("bundleIdentifier"))
+
+        if changed:
             rewritten += 1
     return rewritten
 
@@ -270,7 +284,7 @@ def main() -> int:
     feed = json.loads(feed_path.read_text())
 
     if args.rewrite_news:
-        rewritten = rewrite_news(feed)
+        rewritten = rewrite_news(feed, args.repo)
         feed_path.write_text(json.dumps(feed, indent=2, ensure_ascii=False) + "\n")
         print(f"==> {feed_path.name}: rewrote {rewritten} news caption(s) from the release notes")
         return 0
