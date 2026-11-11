@@ -29,9 +29,6 @@ struct PostsView: View {
             }
         }
         .navigationTitle("Posts")
-        .navigationDestination(for: FMHYPost.self) { post in
-            PostDetailView(post: post)
-        }
         .task { await posts.loadIfNeeded(host: host) }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -52,7 +49,13 @@ struct PostsView: View {
             ForEach(years, id: \.self) { year in
                 Section(String(year)) {
                     ForEach(posts.posts.filter { calendar.component(.year, from: $0.published) == year }) { post in
-                        NavigationLink(value: post) {
+                        // The destination rides on the link rather than a
+                        // `navigationDestination` on this screen: the modifier
+                        // sits on content that swaps when the posts arrive, and
+                        // the rows then opened nothing.
+                        NavigationLink {
+                            PostDetailView(post: post)
+                        } label: {
                             VStack(alignment: .leading, spacing: 3) {
                                 Text(post.title)
                                     .font(.callout.weight(.semibold))
