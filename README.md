@@ -33,8 +33,10 @@ repository.
 
 ## Features
 
-- **All 26 wiki sections**, in a sidebar on iPad and Mac and behind a four-tab bar on iPhone
-  (Overview, Search, Bookmarks, Settings), with a tile overview as the start screen.
+- **All 26 wiki sections** in a sidebar on iPad and Mac, with a tile overview as the start screen.
+- **A four-tab bar** (Overview, Search, Bookmarks, Settings) on iPhone, on iPad beside the section
+  list, and on the Mac once the sidebar is collapsed — the four places stay one tap away wherever
+  the sidebar is not.
 - **Local-first:** a bundled snapshot is parsed on first launch, then refreshed from
   `raw.githubusercontent.com/fmhy/edit` — no API keys, no accounts, no rate-limit surprises.
 - **Silent updates:** a commit feed check on launch and on foregrounding picks up changes and

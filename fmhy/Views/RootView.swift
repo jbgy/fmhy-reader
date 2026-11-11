@@ -2,7 +2,8 @@
 //  RootView.swift
 //  fmhy
 //
-//  Adaptive shell: sidebar + detail on iPad and Mac, a tab bar on iPhone.
+//  Adaptive shell: sidebar + detail on iPad and Mac, a tab bar on iPhone and
+//  wherever the sidebar is not on screen, so the four roots stay one tap away.
 //
 
 import SwiftUI
@@ -50,6 +51,12 @@ struct RootView: View {
     @State private var searchPath: [Route] = []
     #endif
     @State private var showPalette = false
+    /// The split view's own state: collapsing the sidebar on the Mac is what
+    /// brings the tab bar in.
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
+    /// The tab kept lit while a section is open, the way pushing a page leaves
+    /// its iPhone tab highlighted rather than clearing it.
+    @State private var lastRoot: SidebarItem = .overview
 
     private var instanceSheetPresented: Binding<Bool> {
         Binding(
@@ -120,7 +127,7 @@ struct RootView: View {
     }
 
     private var split: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columnVisibility) {
             SidebarView(selection: $selection, onChangeInstance: { showInstanceSheet = true })
                 .navigationSplitViewColumnWidth(min: 230, ideal: 280)
         } detail: {
@@ -140,6 +147,17 @@ struct RootView: View {
                 .help("Search every section and link (⌘K)")
             }
         }
+        .onChange(of: selection) { _, item in
+            // Opening a section leaves the tab it came from lit; picking a
+            // different root moves the light there.
+            if let item, case .page = item { return }
+            lastRoot = item ?? .overview
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if showsTabBar {
+                RootTabBar(selection: $selection, active: activeTab)
+            }
+        }
         .overlay {
             if showPalette {
                 CommandPalette(
@@ -149,6 +167,23 @@ struct RootView: View {
                 )
             }
         }
+    }
+
+    /// The lit tab: the root that is showing, or — while a section is open —
+    /// the root it was opened from.
+    private var activeTab: SidebarItem {
+        if let selection, case .page = selection { return lastRoot }
+        return selection ?? .overview
+    }
+
+    /// iPhone draws the native bar; iPad always gets this one beside the
+    /// sidebar's section list; the Mac gets it once the sidebar is collapsed.
+    private var showsTabBar: Bool {
+        #if os(macOS)
+        columnVisibility == .detailOnly
+        #else
+        true
+        #endif
     }
 
     #if os(iOS)
@@ -296,9 +331,8 @@ struct SidebarView: View {
     /// Everything the list shows, in order, so the arrow keys can walk it.
     private var keyboardOrder: [SidebarItem] {
         var items: [SidebarItem] = filteredPages.map { .page($0.slug) }
+        #if os(macOS)
         items.append(contentsOf: [.overview, .search, .bookmarks])
-        #if !os(macOS)
-        items.append(.settings)
         #endif
         return items
     }
@@ -331,7 +365,10 @@ struct SidebarView: View {
                 }
             }
 
-            // The library sits below the wiki so the sections read first.
+            // On the Mac the library sits below the wiki so the sections read
+            // first. iPad reaches these through the tab bar instead, so the
+            // sidebar stays a list of sections rather than repeating them.
+            #if os(macOS)
             Section("Library") {
                 Label("Overview", systemImage: "rectangle.grid.2x2")
                     .tag(SidebarItem.overview)
@@ -339,12 +376,8 @@ struct SidebarView: View {
                     .tag(SidebarItem.search)
                 Label("Bookmarks", systemImage: "star.fill")
                     .tag(SidebarItem.bookmarks)
-                #if !os(macOS)
-                // macOS gets the standard Settings window (⌘,) instead.
-                Label("Settings", systemImage: "gearshape")
-                    .tag(SidebarItem.settings)
-                #endif
             }
+            #endif
 
             Section {
                 StatusRow(onChangeInstance: onChangeInstance)
@@ -367,6 +400,63 @@ struct SidebarView: View {
             InlineSearchField(prompt: "Filter sections", text: $filter)
         }
         #endif
+    }
+}
+
+/// The four app-level destinations, drawn as a tab bar. It writes the same
+/// selection the sidebar does, so a tap moves the sidebar highlight and an
+/// arrow-key move highlights the matching tab.
+struct RootTabBar: View {
+    @Binding var selection: SidebarItem?
+    /// The tab to draw as lit. Opening a section keeps the tab it was opened
+    /// under lit, the way the iPhone bar stays put when a page is pushed.
+    var active: SidebarItem
+
+    private struct Tab: Identifiable {
+        let item: SidebarItem
+        let title: String
+        let symbol: String
+        var id: SidebarItem { item }
+    }
+
+    private var tabs: [Tab] {
+        var tabs = [
+            Tab(item: .overview, title: "Overview", symbol: "rectangle.grid.2x2"),
+            Tab(item: .search, title: "Search", symbol: "magnifyingglass"),
+            Tab(item: .bookmarks, title: "Bookmarks", symbol: "star.fill")
+        ]
+        #if !os(macOS)
+        // macOS gets the standard Settings window (⌘,) instead.
+        tabs.append(Tab(item: .settings, title: "Settings", symbol: "gearshape"))
+        #endif
+        return tabs
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(tabs) { tab in
+                Button {
+                    selection = tab.item
+                } label: {
+                    VStack(spacing: 3) {
+                        Image(systemName: tab.symbol)
+                            .font(.system(size: 17, weight: .regular))
+                        Text(tab.title)
+                            .font(.caption2)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .foregroundStyle(active == tab.item ? AnyShapeStyle(.tint) : AnyShapeStyle(.secondary))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(tab.title)
+                .accessibilityAddTraits(active == tab.item ? [.isSelected] : [])
+            }
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 6)
+        .background(.bar)
+        .overlay(alignment: .top) { Divider() }
     }
 }
 
