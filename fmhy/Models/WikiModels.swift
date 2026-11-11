@@ -129,6 +129,12 @@ struct WikiPage: Identifiable, Hashable, Codable, Sendable {
     var entryIDs: [String] {
         categories.flatMap { $0.groups }.flatMap { $0.entries }.map(\.id)
     }
+
+    /// Every remote link the page holds, for readers comparing a saved copy
+    /// against the wiki as it stands now.
+    var entryURLs: [String] {
+        categories.flatMap { $0.groups }.flatMap { $0.entries }.map { $0.url.absoluteString }
+    }
 }
 
 // MARK: - Search

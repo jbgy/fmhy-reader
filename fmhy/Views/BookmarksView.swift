@@ -18,6 +18,7 @@ private struct BookmarkSection: Identifiable {
 
 struct BookmarksView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(WikiStore.self) private var store
     @Environment(\.openWikiURL) private var openURL
     @Query(sort: \Bookmark.createdAt, order: .reverse) private var bookmarks: [Bookmark]
 
@@ -48,6 +49,13 @@ struct BookmarksView: View {
                 || $0.groupTitle.localizedCaseInsensitiveContains(text)
                 || ($0.folder ?? "").localizedCaseInsensitiveContains(text)
         }
+    }
+
+    /// Bookmarks whose own section is loaded and no longer lists the link:
+    /// FMHY dropped them, so the list should say so instead of pretending the
+    /// link is still part of the wiki.
+    private var gone: [Bookmark] {
+        bookmarks.filter { store.isGoneFromWiki(urlString: $0.urlString, slug: $0.pageSlug) }
     }
 
     private var sections: [BookmarkSection] {
@@ -84,6 +92,21 @@ struct BookmarksView: View {
                 ContentUnavailableView.search(text: query)
             } else {
                 List {
+                    if !gone.isEmpty {
+                        Section {
+                            Button(role: .destructive) {
+                                removeGone()
+                            } label: {
+                                Label(
+                                    "Remove \(gone.count) link\(gone.count == 1 ? "" : "s") no longer in FMHY",
+                                    systemImage: "trash"
+                                )
+                            }
+                        } footer: {
+                            Text("FMHY dropped these from the wiki. They stay saved until you remove them.")
+                        }
+                    }
+
                     ForEach(sections) { section in
                         if let title = section.title {
                             Section(title) { rows(section.items) }
@@ -233,6 +256,12 @@ struct BookmarksView: View {
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
                     }
+
+                    if store.isGoneFromWiki(urlString: bookmark.urlString, slug: bookmark.pageSlug) {
+                        Label("No longer in FMHY", systemImage: "exclamationmark.triangle.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                    }
                 }
 
                 Spacer(minLength: 0)
@@ -289,6 +318,17 @@ struct BookmarksView: View {
             try? modelContext.save()
         }
         BookmarkBackup.snapshot(in: modelContext)
+    }
+
+    private func removeGone() {
+        let items = gone
+        guard !items.isEmpty else { return }
+        withAnimation {
+            items.forEach(modelContext.delete)
+            try? modelContext.save()
+        }
+        BookmarkBackup.snapshot(in: modelContext)
+        statusMessage = "Removed \(items.count) link\(items.count == 1 ? "" : "s") the wiki no longer lists."
     }
 
     private func assign(_ bookmark: Bookmark, folder: String?) {

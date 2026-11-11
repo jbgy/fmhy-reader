@@ -23,6 +23,9 @@ final class WikiStore {
     let catalog: [WikiPageDefinition] = WikiCatalog.pages
 
     private(set) var pages: [String: WikiPage] = [:]
+    /// The links the loaded pages hold right now, keyed by slug. The bookmark
+    /// audit compares saved links against this to notice ones the wiki dropped.
+    private(set) var liveURLs: [String: Set<String>] = [:]
     private(set) var loadingSlugs: Set<String> = []
     private(set) var failedSlugs: Set<String> = []
     private(set) var searchIndex: [SearchItem] = []
@@ -562,11 +565,22 @@ final class WikiStore {
     private func rebuildSearchIndex() {
         var items: [SearchItem] = []
         items.reserveCapacity(12_000)
+        var live: [String: Set<String>] = [:] as [String: Set<String>]
         for definition in catalog {
             guard let page = pages[definition.slug] else { continue }
             items.append(contentsOf: page.searchItems(pageTitle: definition.title))
+            live[definition.slug] = Set(page.entryURLs.map(LinkKey.of))
         }
         searchIndex = items
+        liveURLs = live
+    }
+
+    /// True only when the bookmark's own section is loaded and no longer lists
+    /// the link. A section that has not been downloaded proves nothing either
+    /// way, so it never marks anything removed.
+    func isGoneFromWiki(urlString: String, slug: String) -> Bool {
+        guard let live = liveURLs[slug] else { return false }
+        return !live.contains(LinkKey.of(urlString))
     }
 
     // MARK: - Network
