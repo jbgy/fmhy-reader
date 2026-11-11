@@ -108,6 +108,10 @@ struct RootView: View {
                 Task {
                     await store.refreshInstanceHealthIfStale()
                     await store.refreshIfNeeded()
+                    // Same cadence as the wiki check: coming back to the app
+                    // is when a release that landed while it was closed shows
+                    // up on the Settings tab.
+                    await AppReleaseMonitor.shared.checkIfNeeded()
                 }
             }
         }
@@ -177,6 +181,12 @@ struct RootView: View {
         return selection ?? .overview
     }
 
+    /// 1 while a newer build is on the feed, 0 otherwise: the Settings tab
+    /// carries the same unread dot WhatsApp puts over a chat.
+    private var updateCount: Int {
+        AppReleaseMonitor.shared.available == nil ? 0 : 1
+    }
+
     /// iPhone draws the native bar; iPad always gets this one beside the
     /// sidebar's section list; the Mac gets it once the sidebar is collapsed.
     private var showsTabBar: Bool {
@@ -227,6 +237,9 @@ struct RootView: View {
                 Label("Settings", systemImage: "gearshape")
             }
             .tag(PhoneTab.settings)
+            // A count of zero draws no badge at all, so the dot only exists
+            // while the feed is ahead of this build.
+            .badge(updateCount)
         }
     }
 
@@ -413,6 +426,9 @@ struct RootTabBar: View {
     /// under lit, the way the iPhone bar stays put when a page is pushed.
     var active: SidebarItem
 
+    /// Drawn as a dot over the Settings tab, never as a number.
+    private let releases = AppReleaseMonitor.shared
+
     private struct Tab: Identifiable {
         let item: SidebarItem
         let title: String
@@ -442,6 +458,15 @@ struct RootTabBar: View {
                     VStack(spacing: 3) {
                         Image(systemName: tab.symbol)
                             .font(.system(size: 17, weight: .regular))
+                            .overlay(alignment: .topTrailing) {
+                                if tab.item == .settings, releases.available != nil {
+                                    Circle()
+                                        .fill(.tint)
+                                        .frame(width: 6, height: 6)
+                                        .offset(x: 5, y: -3)
+                                        .accessibilityHidden(true)
+                                }
+                            }
                         Text(tab.title)
                             .font(.caption2)
                     }
@@ -451,6 +476,9 @@ struct RootTabBar: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(tab.title)
+                .accessibilityValue(
+                    tab.item == .settings && releases.available != nil ? "Update available" : ""
+                )
                 .accessibilityAddTraits(active == tab.item ? [.isSelected] : [])
             }
         }

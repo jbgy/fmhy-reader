@@ -45,6 +45,9 @@ struct SettingsView: View {
     @AppStorage(BookmarkBackup.enabledKey) private var backupEnabled = false
 
     @State private var showDomainSheet = false
+    /// The build number is a detail most people never need, so it waits behind
+    /// a tap on the version row.
+    @State private var showBuild = false
 
     var body: some View {
         Form {
@@ -230,22 +233,35 @@ struct SettingsView: View {
                 Text(store.totalEntryCount.formatted())
                     .foregroundStyle(.secondary)
             }
-            LabeledContent("Version") {
-                Text(Self.version)
-                    .foregroundStyle(.secondary)
+            Button {
+                showBuild.toggle()
+            } label: {
+                HStack(spacing: 8) {
+                    Text("Version")
+                    Spacer(minLength: 8)
+                    Text(showBuild ? Self.version : Self.shortVersion)
+                        .foregroundStyle(.secondary)
+                }
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .help(showBuild ? "Hide the build number" : "Show the build number")
 
             if let release = releases.available {
                 Button {
                     ExternalBrowser.open(AppReleaseFeed.releasesURL)
                 } label: {
                     HStack(spacing: 8) {
-                        Label("\(release.version) is available", systemImage: "arrow.down.circle")
-                        Spacer(minLength: 8)
-                        Text("Get it")
+                        Label("Update available", systemImage: "arrow.down.circle")
                             .foregroundStyle(.tint)
+                        Spacer(minLength: 8)
+                        Text(release.version)
+                            .foregroundStyle(.secondary)
                     }
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .help("Open the release notes for \(release.versionLine)")
             }
 
             Text("An unofficial reader for FMHY. Not affiliated with or endorsed by the FMHY team.")
@@ -265,6 +281,10 @@ struct SettingsView: View {
         } else {
             BookmarkBackup.store.remove()
         }
+    }
+
+    private static var shortVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
     }
 
     private static var version: String {
