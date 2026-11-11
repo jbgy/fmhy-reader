@@ -17,6 +17,7 @@ enum SidebarItem: Hashable {
     case page(String)
     case search
     case bookmarks
+    case trail
     case posts
     case settings
 }
@@ -25,6 +26,7 @@ enum SidebarItem: Hashable {
 /// A page pushed on top of an iPhone tab.
 enum Route: Hashable {
     case page(String)
+    case trail
     case posts
 }
 
@@ -115,6 +117,8 @@ struct RootView: View {
                 }
             }
         }
+        // Links handed over by another app or a Shortcut.
+        .onOpenURL { handleIncoming($0) }
     }
 
     /// iPhone gets a tab bar; iPad and Mac keep the sidebar.
@@ -204,6 +208,7 @@ struct RootView: View {
                 OverviewView(
                     openSection: { show(slug: $0, group: nil) },
                     openPosts: { overviewPath.append(.posts) },
+                    openTrail: { overviewPath.append(.trail) },
                     onChangeInstance: { showInstanceSheet = true }
                 )
                 .navigationDestination(for: Route.self) { destination($0) }
@@ -254,6 +259,9 @@ struct RootView: View {
         case .posts:
             PostsView()
                 .toolbar(.hidden, for: .tabBar)
+        case .trail:
+            TrailView()
+                .toolbar(.hidden, for: .tabBar)
         }
     }
     #endif
@@ -292,6 +300,68 @@ struct RootView: View {
         #endif
     }
 
+    /// `fmhy://open?url=…`, `fmhy://section?slug=…`, `fmhy://save?url=…&title=…`.
+    private func handleIncoming(_ url: URL) {
+        guard url.scheme?.lowercased() == "fmhy" else {
+            openWikiURL(url)
+            return
+        }
+
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        let items = components?.queryItems ?? []
+        func value(_ name: String) -> String? {
+            guard let raw = items.first(where: { $0.name == name })?.value else { return nil }
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+
+        switch components?.host?.lowercased() ?? "" {
+        case "save":
+            guard let raw = value("url"), let target = URL(string: raw) else { return }
+            saveIncoming(target, title: value("title"))
+        case "section":
+            guard let slug = value("slug") ?? value("section") else { return }
+            show(slug: slug, group: value("group"))
+        default:
+            guard let raw = value("url"), let target = URL(string: raw) else { return }
+            openWikiURL(target)
+        }
+    }
+
+    /// Saves a link the way the star button does, then shows where it landed.
+    private func saveIncoming(_ url: URL, title: String?) {
+        let existing = (try? modelContext.fetch(FetchDescriptor<Bookmark>())) ?? []
+        if existing.contains(where: { $0.urlString == url.absoluteString }) {
+            showBookmarks()
+            return
+        }
+
+        modelContext.insert(
+            Bookmark(
+                urlString: url.absoluteString,
+                title: title ?? url.host ?? url.absoluteString,
+                summary: "",
+                pageSlug: "",
+                pageTitle: "Saved links",
+                categoryTitle: "",
+                groupTitle: ""
+            )
+        )
+        try? modelContext.save()
+        BookmarkBackup.snapshot(in: modelContext)
+        showBookmarks()
+    }
+
+    private func showBookmarks() {
+        #if os(iOS)
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            phoneTab = .bookmarks
+            return
+        }
+        #endif
+        selection = .bookmarks
+    }
+
     private func offerBackupRestore() {
         let count = (try? modelContext.fetchCount(FetchDescriptor<Bookmark>())) ?? 0
         restoreRecords = BookmarkBackup.restoreCandidate(bookmarkCount: count)
@@ -315,12 +385,15 @@ struct RootView: View {
             BookmarksView()
         case .posts:
             PostsView()
+        case .trail:
+            TrailView()
         case .settings:
             SettingsView()
         case .overview, .none:
             OverviewView(
                 openSection: { selection = .page($0) },
                 openPosts: { selection = .posts },
+                openTrail: { selection = .trail },
                 onChangeInstance: { showInstanceSheet = true }
             )
         }
@@ -346,7 +419,7 @@ struct SidebarView: View {
     private var keyboardOrder: [SidebarItem] {
         var items: [SidebarItem] = filteredPages.map { .page($0.slug) }
         #if os(macOS)
-        items.append(contentsOf: [.overview, .search, .bookmarks])
+        items.append(contentsOf: [.overview, .search, .bookmarks, .trail])
         #endif
         return items
     }
@@ -390,6 +463,8 @@ struct SidebarView: View {
                     .tag(SidebarItem.search)
                 Label("Bookmarks", systemImage: "star.fill")
                     .tag(SidebarItem.bookmarks)
+                Label("Trail", systemImage: "clock.arrow.circlepath")
+                    .tag(SidebarItem.trail)
             }
             #endif
 

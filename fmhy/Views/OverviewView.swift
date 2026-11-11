@@ -10,9 +10,12 @@ import SwiftUI
 struct OverviewView: View {
     var openSection: (String) -> Void
     var openPosts: () -> Void
+    var openTrail: () -> Void
     var onChangeInstance: () -> Void
 
     @Environment(WikiStore.self) private var store
+    @Environment(\.openWikiURL) private var openURL
+    private let trail = TrailStore.shared
     @AppStorage("overviewHintDismissed") private var hintDismissed = false
     private let releases = AppReleaseMonitor.shared
 
@@ -33,6 +36,10 @@ struct OverviewView: View {
 
                 if !store.recentSlugs.isEmpty {
                     recentlyViewed
+                }
+
+                if !trail.entries.isEmpty {
+                    trailRow
                 }
 
                 LazyVGrid(columns: columns, spacing: 12) {
@@ -219,6 +226,49 @@ struct OverviewView: View {
         }
     }
 
+    /// The links opened lately, so a tool tried earlier is one tap away.
+    private var trailRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Text("Trail")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                Spacer(minLength: 8)
+
+                Button("See all") { openTrail() }
+                    .font(.caption)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(.tint)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(trail.entries.prefix(5)) { item in
+                        Button {
+                            if let url = item.url { openURL(url) }
+                        } label: {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.title)
+                                    .font(.caption)
+                                    .foregroundStyle(.primary)
+                                    .lineLimit(1)
+                                Text(item.pageTitle)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(.quaternary.opacity(0.5), in: .rect(cornerRadius: 10))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+    }
+
     /// Jump back into whatever was read last.
     private var recentlyViewed: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -345,6 +395,6 @@ struct OverviewView: View {
 }
 
 #Preview {
-    OverviewView(openSection: { _ in }, openPosts: {}, onChangeInstance: {})
+    OverviewView(openSection: { _ in }, openPosts: {}, openTrail: {}, onChangeInstance: {})
         .environment(WikiStore())
 }

@@ -26,6 +26,9 @@ struct EntryRow: View {
 
     var body: some View {
         Button {
+            // The trail is what makes a link found by browsing findable again
+            // a week later; bookmarks are the deliberate version of the same.
+            TrailStore.shared.record(entry, context: context)
             openURL(entry.url)
         } label: {
             HStack(alignment: .top, spacing: 10) {
