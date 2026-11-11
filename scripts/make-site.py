@@ -319,7 +319,7 @@ def render_landing(feed: dict, months: list[tuple[datetime.datetime, list[dict]]
 </section>
 
 <section class="gallery">
-  <figure><img src="images/OverviewList.png" alt="Overview with every section and its live link count"><figcaption>Overview: all 26 sections, live link counts.</figcaption></figure>
+  <figure><img src="images/OverviewList.png" alt="Overview with every section and its live link count"><figcaption>Overview: all 25 sections, live link counts.</figcaption></figure>
   <figure><img src="images/AdblockingAndPrivacyList.png" alt="A section with callouts, sub-sections and star-to-save rows"><figcaption>Every section, with callouts and sub-sections.</figcaption></figure>
   <figure><img src="images/AdblockingAndPrivacyJumpTo.png" alt="The Jump To sheet listing categories and languages"><figcaption>Jump To any category or language.</figcaption></figure>
   <figure><img src="images/Searching_uBlock_inWiki.png" alt="Search results showing the section each link lives in"><figcaption>Search tells you where each link lives.</figcaption></figure>

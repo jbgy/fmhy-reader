@@ -46,7 +46,6 @@ enum WikiCatalog {
         .init(slug: "misc", title: "Misc", symbol: "square.grid.2x2", tagline: "Everything else"),
         .init(slug: "unsafe", title: "Unsafe Sites", symbol: "exclamationmark.triangle", tagline: "Sites to avoid"),
         .init(slug: "non-english", title: "Non-English", symbol: "character.bubble", tagline: "International resources"),
-        .init(slug: "sandbox", title: "Sandbox", symbol: "testtube.2", tagline: "Experiments"),
     ]
 
     static let slugs: [String] = pages.map(\.slug)
