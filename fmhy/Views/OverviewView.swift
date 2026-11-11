@@ -14,6 +14,7 @@ struct OverviewView: View {
 
     @Environment(WikiStore.self) private var store
     @AppStorage("overviewHintDismissed") private var hintDismissed = false
+    private let releases = AppReleaseMonitor.shared
 
     private let columns = [GridItem(.adaptive(minimum: 150, maximum: 230), spacing: 12)]
 
@@ -107,6 +108,31 @@ struct OverviewView: View {
         if store.totalEntryCount > 0 {
             infoChip("\(store.totalEntryCount) links")
         }
+        // Sideloaded builds are never updated by the App Store, so the feed
+        // has to say it here.
+        if let release = releases.available {
+            updateChip(release)
+        }
+    }
+
+    private func updateChip(_ release: AppRelease) -> some View {
+        Button {
+            ExternalBrowser.open(AppReleaseFeed.releasesURL)
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.down.circle.fill")
+                    .font(.system(size: 8, weight: .semibold))
+                Text("\(release.version) available")
+                    .lineLimit(1)
+            }
+            .font(.caption2.weight(.medium))
+            .foregroundStyle(.tint)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(.tint.opacity(0.14), in: .capsule)
+        }
+        .buttonStyle(.plain)
+        .help("A newer build is on the releases page")
     }
 
     /// FMHY's monthly update posts.

@@ -37,6 +37,7 @@ struct SettingsView: View {
     @Environment(WikiStore.self) private var store
     @Environment(\.modelContext) private var modelContext
     @Query private var bookmarks: [Bookmark]
+    private let releases = AppReleaseMonitor.shared
 
     @AppStorage("appearanceMode") private var appearance: AppearanceMode = .system
     @AppStorage("overviewHintDismissed") private var hintDismissed = false
@@ -232,6 +233,19 @@ struct SettingsView: View {
             LabeledContent("Version") {
                 Text(Self.version)
                     .foregroundStyle(.secondary)
+            }
+
+            if let release = releases.available {
+                Button {
+                    ExternalBrowser.open(AppReleaseFeed.releasesURL)
+                } label: {
+                    HStack(spacing: 8) {
+                        Label("\(release.version) is available", systemImage: "arrow.down.circle")
+                        Spacer(minLength: 8)
+                        Text("Get it")
+                            .foregroundStyle(.tint)
+                    }
+                }
             }
 
             Text("An unofficial reader for FMHY. Not affiliated with or endorsed by the FMHY team.")

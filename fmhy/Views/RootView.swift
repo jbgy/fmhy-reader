@@ -101,6 +101,7 @@ struct RootView: View {
             // resumes from the overview's "Recently viewed" row instead.
             await store.bootstrap()
             offerBackupRestore()
+            await AppReleaseMonitor.shared.checkIfNeeded()
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
