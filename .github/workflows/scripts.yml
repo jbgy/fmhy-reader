@@ -1,0 +1,44 @@
+name: Scripts
+
+# The generator scripts only. A syntax error here is a script problem, not a
+# broken app, so it gets its own check and its own path filter.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/scripts.yml'
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/scripts.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scripts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Parse and compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check shell scripts parse
+        run: |
+          for script in scripts/*.sh; do
+            bash -n "$script"
+            echo "ok $script"
+          done
+
+      - name: Check Python helpers compile
+        run: |
+          for script in scripts/*.py; do
+            python3 -c "compile(open('$script').read(), '$script', 'exec')"
+            echo "ok $script"
+          done

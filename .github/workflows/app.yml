@@ -1,0 +1,76 @@
+name: App
+
+# The Swift app on its own: both platform builds and the unit tests. Kept apart
+# from the feed and script checks so a broken markdown link never makes the app
+# look broken, and the app is only rebuilt when app code actually changed.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'fmhy/**'
+      - 'fmhyTests/**'
+      - 'fmhy.xcodeproj/**'
+      - 'Info.plist'
+      - 'scripts/build-ipa.sh'
+      - 'scripts/build-macos.sh'
+      - '.github/workflows/app.yml'
+  pull_request:
+    paths:
+      - 'fmhy/**'
+      - 'fmhyTests/**'
+      - 'fmhy.xcodeproj/**'
+      - 'Info.plist'
+      - 'scripts/build-ipa.sh'
+      - 'scripts/build-macos.sh'
+      - '.github/workflows/app.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    runs-on: xcode-27
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: iOS
+            destination: generic/platform=iOS Simulator
+          - name: macOS
+            destination: platform=macOS
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build
+        run: |
+          xcodebuild \
+            -project fmhy.xcodeproj \
+            -scheme fmhy \
+            -configuration Debug \
+            -destination '${{ matrix.destination }}' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+  test:
+    name: Unit tests
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -project fmhy.xcodeproj \
+            -scheme fmhy \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO

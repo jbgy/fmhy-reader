@@ -1,6 +1,7 @@
 # FMHY Reader
 
-[![CI](https://github.com/jbgy/fmhy-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/jbgy/fmhy-reader/actions/workflows/ci.yml)
+[![App](https://github.com/jbgy/fmhy-reader/actions/workflows/app.yml/badge.svg)](https://github.com/jbgy/fmhy-reader/actions/workflows/app.yml)
+[![Feed](https://github.com/jbgy/fmhy-reader/actions/workflows/feed.yml/badge.svg)](https://github.com/jbgy/fmhy-reader/actions/workflows/feed.yml)
 [![Release](https://github.com/jbgy/fmhy-reader/actions/workflows/release.yml/badge.svg)](https://github.com/jbgy/fmhy-reader/actions/workflows/release.yml)
 [![AltStore source](https://img.shields.io/badge/AltStore%20%C2%B7%20SideStore%20%C2%B7%20Feather-add%20source-7C5CFF)](https://altdirect.app/?url=https%3A%2F%2Fraw.githubusercontent.com%2Fjbgy%2Ffmhy-reader%2Frefs%2Fheads%2Fmain%2Fdocs%2Fapps.json)
 [![Download](https://img.shields.io/badge/download-IPA%20%2B%20macOS%20app-2EA043)](https://github.com/jbgy/fmhy-reader/releases/latest)

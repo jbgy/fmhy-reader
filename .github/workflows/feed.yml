@@ -1,79 +1,38 @@
-name: CI
+name: Feed
+
+# The AltStore feed and the site generated from it. Runs when docs/ or the
+# generator changes, so a stale page or a bad news caption fails on its own
+# instead of turning the app's checks red.
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'docs/**'
+      - 'scripts/make-site.py'
+      - 'scripts/make-altstore-source.py'
+      - '.github/workflows/feed.yml'
   pull_request:
+    paths:
+      - 'docs/**'
+      - 'scripts/make-site.py'
+      - 'scripts/make-altstore-source.py'
+      - '.github/workflows/feed.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: feed-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build ${{ matrix.name }}
-    runs-on: xcode-27
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: iOS
-            destination: generic/platform=iOS Simulator
-          - name: macOS
-            destination: platform=macOS
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Show Xcode version
-        run: xcodebuild -version
-
-      - name: Build
-        run: |
-          xcodebuild \
-            -project fmhy.xcodeproj \
-            -scheme fmhy \
-            -configuration Debug \
-            -destination '${{ matrix.destination }}' \
-            CODE_SIGNING_ALLOWED=NO \
-            build
-
-  test:
-    name: Unit tests
-    runs-on: xcode-27
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run tests
-        run: |
-          xcodebuild test \
-            -project fmhy.xcodeproj \
-            -scheme fmhy \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO
-
   validate:
-    name: Validate scripts and source feed
+    name: Check the feed and the site
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Check shell scripts parse
-        run: |
-          for script in scripts/*.sh; do
-            bash -n "$script"
-            echo "ok $script"
-          done
-
-      - name: Check Python helpers compile
-        run: |
-          for script in scripts/*.py; do
-            python3 -c "compile(open('$script').read(), '$script', 'exec')"
-            echo "ok $script"
-          done
 
       - name: Check the site matches the feed
         run: python3 scripts/make-site.py --check
