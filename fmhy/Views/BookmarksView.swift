@@ -10,9 +10,10 @@ import SwiftData
 import UniformTypeIdentifiers
 
 private struct BookmarkSection: Identifiable {
-    let title: String
+    /// nil leaves the header off a list that has no folders to tell apart.
+    let title: String?
     let items: [Bookmark]
-    var id: String { title }
+    var id: String { title ?? "" }
 }
 
 struct BookmarksView: View {
@@ -28,6 +29,7 @@ struct BookmarksView: View {
     @State private var folderTarget: Bookmark?
     @State private var exportDocument: BookmarkExportDocument?
     @State private var statusMessage: String?
+    @State private var importRequest: BookmarkImportRequest?
     /// Backed by the same defaults key as `BookmarkBackup`, so the menu and the
     /// footer redraw the moment the copy is turned on or off.
     @AppStorage(BookmarkBackup.enabledKey) private var backupEnabled = false
@@ -56,7 +58,9 @@ struct BookmarksView: View {
 
         var result: [BookmarkSection] = []
         if let unfiled = buckets.removeValue(forKey: ""), !unfiled.isEmpty {
-            result.append(BookmarkSection(title: "Unfiled", items: unfiled))
+            // On its own the loose list needs no name: a lone "Unfiled" header
+            // above every saved link reads like a folder the user never made.
+            result.append(BookmarkSection(title: buckets.isEmpty ? nil : "Unfiled", items: unfiled))
         }
         for name in buckets.keys.sorted() {
             result.append(BookmarkSection(title: name, items: buckets[name] ?? []))
@@ -73,7 +77,7 @@ struct BookmarksView: View {
                     Text("Tap the star next to any link to keep it here, available offline.")
                 } actions: {
                     if let backup = BookmarkBackup.store.records() {
-                        Button("Restore \(backup.count) from Backup") { restore(backup) }
+                        Button("Restore \(backup.count) from Backup") { beginRestore(backup) }
                     }
                 }
             } else if filtered.isEmpty {
@@ -81,17 +85,10 @@ struct BookmarksView: View {
             } else {
                 List {
                     ForEach(sections) { section in
-                        Section(section.title) {
-                            ForEach(section.items) { bookmark in
-                                row(bookmark)
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                        Button(role: .destructive) {
-                                            remove(bookmark)
-                                        } label: {
-                                            Label("Remove", systemImage: "trash")
-                                        }
-                                    }
-                            }
+                        if let title = section.title {
+                            Section(title) { rows(section.items) }
+                        } else {
+                            Section { rows(section.items) }
                         }
                     }
 
@@ -132,6 +129,19 @@ struct BookmarksView: View {
         .fileImporter(isPresented: $isImporting, allowedContentTypes: [.json]) { result in
             handleImport(result)
         }
+        // A file or a backup holds whatever it holds; the reader picks which of
+        // those links the list should adopt before anything is written.
+        .sheet(item: $importRequest) { request in
+            BookmarkImportView(
+                request: request,
+                existingURLs: Set(bookmarks.map(\.urlString)),
+                onCancel: { importRequest = nil },
+                onImport: { records in
+                    apply(records, from: request)
+                    importRequest = nil
+                }
+            )
+        }
     }
 
     @ToolbarContentBuilder
@@ -171,7 +181,7 @@ struct BookmarksView: View {
                     "Restore \(backup.count) Bookmark\(backup.count == 1 ? "" : "s") from Backup",
                     systemImage: "arrow.counterclockwise"
                 ) {
-                    restore(backup)
+                    beginRestore(backup)
                 }
             }
         } label: {
@@ -181,6 +191,20 @@ struct BookmarksView: View {
     }
 
     // MARK: - Rows
+
+    @ViewBuilder
+    private func rows(_ items: [Bookmark]) -> some View {
+        ForEach(items) { bookmark in
+            row(bookmark)
+                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                    Button(role: .destructive) {
+                        remove(bookmark)
+                    } label: {
+                        Label("Remove", systemImage: "trash")
+                    }
+                }
+        }
+    }
 
     private func row(_ bookmark: Bookmark) -> some View {
         Button {
@@ -295,10 +319,19 @@ struct BookmarksView: View {
         }
     }
 
-    private func restore(_ records: [BookmarkRecord]) {
+    private func beginRestore(_ records: [BookmarkRecord]) {
+        statusMessage = nil
+        importRequest = BookmarkImportRequest(records: records, source: .backup)
+    }
+
+    private func apply(_ records: [BookmarkRecord], from request: BookmarkImportRequest) {
+        guard !records.isEmpty else {
+            statusMessage = "Nothing was selected, so nothing changed."
+            return
+        }
         let outcome = withAnimation { BookmarkImport.merge(records, into: modelContext) }
-        BookmarkBackup.acceptRestore()
-        statusMessage = "Restored \(outcome.added) bookmark\(outcome.added == 1 ? "" : "s")."
+        if request.source == .backup { BookmarkBackup.acceptRestore() }
+        statusMessage = "Imported \(outcome.added) new, updated \(outcome.updated) existing."
     }
 
     private func createFolder() {
@@ -329,8 +362,12 @@ struct BookmarksView: View {
             }
 
             let records = try BookmarkArchive.decode(Data(contentsOf: url))
-            let outcome = withAnimation { BookmarkImport.merge(records, into: modelContext) }
-            statusMessage = "Imported \(outcome.added) new, updated \(outcome.updated) existing."
+            guard !records.isEmpty else {
+                statusMessage = "That file holds no bookmarks."
+                return
+            }
+            statusMessage = nil
+            importRequest = BookmarkImportRequest(records: records, source: .file)
         } catch {
             statusMessage = "Import failed: \(error.localizedDescription)"
         }
