@@ -8,6 +8,22 @@
   "identifier": "com.jbugel.fmhy.altstore",
   "apps": [
     {
+      "name": "FMHY 2.0.1",
+      "bundleIdentifier": "iOS.jbugel.fmhy",
+      "developerName": "jbgy",
+      "subtitle": "FMHY Reader · Build 20001",
+      "localizedDescription": "Added:\n- updates: refresh sections by their own churn, and add keyboard parity\n- nav: give iPad and a collapsed Mac sidebar the tab bar\n- Feed: write the news as changelogs\n- bookmarks: review an import and drop the lone Unfiled header\n- Point out a newer build from the source feed\n- Feed: point the news at the release notes\n\nFixed:\n- posts: let a row open its post\n\nDocs:\n- Point at the canary next to CI\n- readme: acknowledge fmhy-app inspiration\n\nUnsigned IPA for iOS 17.0 and later.",
+      "iconURL": "https://raw.githubusercontent.com/jbgy/fmhy-reader/refs/heads/main/docs/icon.png",
+      "tintColor": "#7C5CFF",
+      "version": "2.0.1",
+      "buildVersion": "20001",
+      "versionDate": "2026-11-11T13:50:22Z",
+      "downloadURL": "https://github.com/jbgy/fmhy-reader/releases/download/v2.0.1/FMHY.ipa",
+      "size": 2757816,
+      "minOSVersion": "17.0",
+      "sha256": "16e60135f6ec8ebc052ec0e85558313cdd26e73fc4ccd7cd12880287192b305d"
+    },
+    {
       "name": "FMHY 2.0",
       "bundleIdentifier": "iOS.jbugel.fmhy",
       "developerName": "jbgy",
@@ -153,6 +169,16 @@
     }
   ],
   "news": [
+    {
+      "title": "FMHY 2.0.1",
+      "identifier": "2.0.1-20001",
+      "caption": "Updates: refresh sections by their own churn, and add keyboard parity; Posts: let a row open its post; Point at the canary next to CI.",
+      "date": "2026-11-11T13:50:22Z",
+      "tintColor": "#7C5CFF",
+      "notify": false,
+      "appID": "iOS.jbugel.fmhy",
+      "url": "https://github.com/jbgy/fmhy-reader/releases/tag/v2.0.1"
+    },
     {
       "title": "FMHY 2.0",
       "identifier": "2.0-9",
